@@ -1,13 +1,16 @@
 import { useAnalisisStore } from "@/stores/resposicion-analisis.store";
+import { AnalisisFilterPanel } from "./AnalisisFilterPanel";
+import { AnalisisTable } from "./AnalisisTable";
 
 export const AnalisisView = () => {
-  const { viewMode, filterPanelOpen } = useAnalisisStore();
+  const { viewMode, filters, filterPanelOpen } = useAnalisisStore();
   return (
     <div>
-      <div>AnalisisView</div>
-      {viewMode === "compact" ? <div>Compact</div> : <div>Full</div>}
-      {filterPanelOpen && <div>FilterPanel</div>}
+      {/* Filtros */}
+      {filterPanelOpen && <AnalisisFilterPanel />}
+
+      {/* Tabla */}
+      {Object.keys(filters).length > 0 && <AnalisisTable viewMode={viewMode} />}
     </div>
   );
 };
-

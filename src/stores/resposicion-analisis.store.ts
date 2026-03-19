@@ -16,7 +16,11 @@ export const useAnalisisStore = create<AnalisisStore>((set) => ({
   // estado inicial
   viewMode: "compact",
   filterPanelOpen: true,
-  filters: {},
+  filters: {
+    almacen: "",
+    producto: "",
+    proveedor: "",
+  },
 
   // acciones
   setViewMode: (mode) => set({ viewMode: mode }),
