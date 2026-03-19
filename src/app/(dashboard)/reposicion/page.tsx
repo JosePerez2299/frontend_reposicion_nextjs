@@ -1,13 +1,16 @@
+"use client";
+
 import AnalisisView from "@/features/analisis_reposicion/AnalisisView";
 import { Topbar } from "@/components/layout/Topbar";
 import { AnalisisTopBar } from "@/features/analisis_reposicion/components/AnalisisTopBar";
+import { useState } from "react";
 
 const AnalisisVentas = () => {
   return (
     <div className="hidden md:flex flex-col h-screen">
       <Topbar title="Análisis de Ventas" subtitle="Repositorio de reposición">
         <AnalisisTopBar />
-      </Topbar> 
+      </Topbar>
       <AnalisisView />
     </div>
   );
