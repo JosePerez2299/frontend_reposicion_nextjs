@@ -1,6 +1,6 @@
 import { useAnalisisStore } from "@/stores/resposicion-analisis.store";
 
-const AnalisisView = () => {
+export const AnalisisView = () => {
   const { viewMode, filterPanelOpen } = useAnalisisStore();
   return (
     <div>
@@ -11,4 +11,3 @@ const AnalisisView = () => {
   );
 };
 
-export default AnalisisView;
