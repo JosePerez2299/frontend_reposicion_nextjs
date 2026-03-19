@@ -4,13 +4,17 @@ import { NavSection } from "@/config/navigation";
 const Sidebar = ({ navigation }: { navigation: NavSection[] }) => {
   return (
     <div>
-      <div className="navbar bg-base-200 w-full">
-        <div className="flex-1">
+      <div className="">
+        <div className="">
           {navigation.map((navSection) => (
-            <div>
-              <h2>{navSection.section}</h2>
+            <div key={navSection.section}>
+              <h2 className="text-lg font-semibold mb-2">{navSection.section}</h2>
               {navSection.items.map((item) => (
-                <Link key={item.id} href={item.href}>
+                <Link
+                  className="block mb-1 hover:underline"
+                  key={item.id}
+                  href={item.href}
+                >
                   {item.label}
                 </Link>
               ))}
