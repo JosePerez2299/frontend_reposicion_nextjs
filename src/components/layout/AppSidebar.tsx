@@ -14,7 +14,7 @@ import { NavSection } from "./NavSection";
 export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="border-b border-sidebar-border">
+      <SidebarHeader className="border-b h-12 border-sidebar-border">
         <div className="flex items-center justify-between px-1 py-1">
           {/* logo + nombre — se ocultan al colapsar */}
           <div className="flex items-center gap-2.5 min-w-0 group-data-[collapsible=icon]:hidden">
