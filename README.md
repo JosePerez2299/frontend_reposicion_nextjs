@@ -1,36 +1,107 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
-
-## Getting Started
-
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+src/
+│
+├── app/                          ← Next.js App Router
+│   ├── (auth)/
+│   │   └── login/
+│   │       └── page.tsx
+│   │
+│   ├── (dashboard)/              ← layout compartido del dashboard
+│   │   ├── layout.tsx            ← sidebar + topbar
+│   │   ├── analisis/
+│   │   │   └── page.tsx
+│   │   ├── criticos/
+│   │   │   └── page.tsx
+│   │   ├── pedidos/
+│   │   │   ├── page.tsx
+│   │   │   └── [id]/
+│   │   │       └── page.tsx
+│   │   ├── historial/
+│   │   │   └── page.tsx
+│   │   └── tendencias/
+│   │       └── page.tsx
+│   │
+│   ├── api/                      ← Route handlers (si los necesitas en Next)
+│   │   ├── productos/
+│   │   │   └── route.ts
+│   │   └── export/
+│   │       └── route.ts          ← stream del Excel
+│   │
+│   ├── layout.tsx                ← root layout (fonts, providers)
+│   └── globals.css
+│
+├── features/                     ← ★ el corazón del proyecto
+│   │
+│   ├── analisis/
+│   │   ├── components/
+│   │   │   ├── AnalisisView.tsx
+│   │   │   ├── TablaProductos.tsx
+│   │   │   ├── FiltersPanel.tsx
+│   │   │   ├── StatsBar.tsx
+│   │   │   └── cells/
+│   │   │       ├── RotCell.tsx
+│   │   │       ├── StockCell.tsx
+│   │   │       └── ModeloCell.tsx
+│   │   ├── hooks/
+│   │   │   ├── useProductosTable.ts   ← config de TanStack Table
+│   │   │   ├── useFilters.ts
+│   │   │   └── useExport.ts
+│   │   ├── queries/
+│   │   │   └── productos.queries.ts   ← TanStack Query fetchers
+│   │   ├── types/
+│   │   │   └── analisis.types.ts
+│   │   └── index.ts                   ← exports públicos del feature
+│   │
+│   ├── pedidos/
+│   │   ├── components/
+│   │   │   ├── PedidosView.tsx
+│   │   │   ├── PedidoCard.tsx
+│   │   │   └── PedidoDetalle.tsx
+│   │   ├── hooks/
+│   │   │   └── usePedidos.ts
+│   │   ├── queries/
+│   │   │   └── pedidos.queries.ts
+│   │   ├── types/
+│   │   │   └── pedidos.types.ts
+│   │   └── index.ts
+│   │
+│   ├── criticos/
+│   │   └── ...
+│   │
+│   └── historial/
+│       └── ...
+│
+├── components/                   ← solo componentes verdaderamente globales
+│   ├── ui/                       ← átomos sin lógica de negocio
+│   │   ├── Badge.tsx
+│   │   ├── Button.tsx
+│   │   ├── Pill.tsx
+│   │   ├── Tooltip.tsx
+│   │   └── Spinner.tsx
+│   └── layout/
+│       ├── Sidebar.tsx
+│       ├── SidebarItem.tsx
+│       └── Topbar.tsx
+│
+├── lib/                          ← utilidades puras sin UI
+│   ├── utils.ts                  ← cn(), clsx
+│   ├── formatters.ts             ← formatStockNum(), formatRot()
+│   ├── constants.ts              ← ROT_THRESHOLD, STORE_COLORS
+│   └── api.ts                    ← fetch base client
+│
+├── hooks/                        ← hooks verdaderamente globales
+│   ├── useDebounce.ts
+│   └── useMediaQuery.ts
+│
+├── stores/                       ← Zustand
+│   ├── sidebar.store.ts          ← collapsed state
+│   ├── filters.store.ts          ← filtros activos globales
+│   └── ui.store.ts
+│
+├── types/                        ← tipos globales compartidos
+│   ├── api.types.ts              ← responses del backend
+│   ├── entities.types.ts         ← Producto, Tienda, Pedido
+│   └── auth.types.ts             ← User, Role
+│
+└── config/
+    ├── navigation.ts             ← definición de módulos del sidebar
+    └── queryClient.ts            ← config de TanStack Query
