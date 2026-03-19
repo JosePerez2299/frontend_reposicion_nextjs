@@ -116,6 +116,24 @@
 }
 
 @layer base {
+
+    :root {
+    /* tu paleta */
+    --primary: #c9b47a;
+    --primary-content: #0f0f10;
+
+    --surface-1: #161618;
+    --surface-2: #1e1e21;
+    --surface-3: #26262a;
+
+    --text-primary: #f0ede8;
+    --text-muted: #a09d98;
+    --text-subtle: #7a7870;
+
+    --rot-good: #4caf82;
+    --rot-warn: #e8a832;
+    --rot-bad: #e05252;
+    };
   * {
     @apply border-border outline-ring/50;
     }

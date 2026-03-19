@@ -1,5 +1,7 @@
-import Sidebar from "@/components/layout/Sidebar";
-import { navigation } from "@/config/navigation";
+// app/(dashboard)/layout.tsx
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { AppSidebar } from "@/components/layout/AppSidebar";
 
 export default function DashboardLayout({
   children,
@@ -7,10 +9,12 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <>
-      <Sidebar navigation={navigation} />
-      <hr />
-      <div>{children}</div>
-    </>
+    <TooltipProvider delayDuration={0}>
+      <SidebarProvider>
+        <AppSidebar />
+       
+        <aside className="flex-1 overflow-hidden min-w-0">{children}</aside>
+      </SidebarProvider>
+    </TooltipProvider>
   );
 }

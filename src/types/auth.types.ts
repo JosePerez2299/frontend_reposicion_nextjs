@@ -1,11 +1,18 @@
 
-export type Role = 'reposicion' | 'pedidos' | 'almacen' | 'admin'
+
+
+export enum RolesEnum {
+  Reposicion = 'reposicion',
+  Pedidos = 'pedidos',
+  Almacen = 'almacen',
+  Admin = 'admin',
+}
 
 export interface User {
   id: string
   nombre: string
   email: string
-  role: Role
+  role: RolesEnum
 }
 
 export interface Session {
