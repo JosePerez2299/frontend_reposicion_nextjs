@@ -3,7 +3,7 @@ import { AnalisisFilterPanel } from "./AnalisisFilterPanel";
 import { AnalisisTable } from "./AnalisisTable";
 
 export const AnalisisView = () => {
-  const { viewMode, appliedFilters, hasApplied, filterPanelOpen } =
+  const { viewMode, hasApplied, filterPanelOpen } =
     useAnalisisStore();
   return (
     <div>
@@ -13,11 +13,6 @@ export const AnalisisView = () => {
       {/* Tabla */}
       {hasApplied ? (
         <>
-          {Object.keys(appliedFilters).map((key) => (
-            <div key={key}>
-              {key}: {appliedFilters[key as keyof typeof appliedFilters]}
-            </div>
-          ))}
           <hr className="mb-4" />
           <h2 className="text-lg text-center font-semibold mb-4">Tabla</h2>
           <AnalisisTable viewMode={viewMode} />
