@@ -11,7 +11,7 @@ export const AnalisisView = () => {
       {filterPanelOpen && <AnalisisFilterPanel />}
 
       {/* Tabla */}
-      {hasApplied ? (
+      {!hasApplied ? (
         <>
           <hr className="mb-4" />
           <h2 className="text-lg text-center font-semibold mb-4">Tabla</h2>
