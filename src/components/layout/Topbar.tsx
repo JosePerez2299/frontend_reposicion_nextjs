@@ -11,7 +11,7 @@ interface TopbarProps {
 
 export function Topbar({ title, subtitle, children }: TopbarProps) {
   return (
-    <header className="flex items-center gap-3 h-12 px-4 border-b border-border flex-shrink-0">
+    <header className="flex items-center gap-3 h-12 px-4 border-b border-border flex-shrink-0 bg-secondary">
       <SidebarTrigger className="md:hidden" />
       <Separator orientation="vertical" className="h-4 md:hidden" />
 

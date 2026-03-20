@@ -3,29 +3,67 @@ import { create } from "zustand";
 type ViewMode = "compact" | "full";
 
 interface AnalisisStore {
+  // UI
   viewMode: ViewMode;
   filterPanelOpen: boolean;
-  filters: Record<string, any>;
+
+  // datos
+  filters: AnalisisFilters;
+  appliedFilters: AnalisisFilters;
+  hasApplied: boolean;
+
+  // acciones UI
   setViewMode: (mode: ViewMode) => void;
   toggleFilterPanel: () => void;
   closeFilterPanel: () => void;
-  setFilters: (filters: Record<string, any>) => void;
+
+  // acciones filtros
+  setFilters: (filters: AnalisisFilters) => void;
+  applyFilters: (filters: AnalisisFilters) => void;
+  clearFilters: () => void;
 }
 
+export interface AnalisisFilters {
+  stores: string;
+  product: string;
+  provider: string;
+}
+
+const INITIAL_FILTERS: AnalisisFilters = {
+  stores: "",
+  product: "",
+  provider: "",
+};
+
 export const useAnalisisStore = create<AnalisisStore>((set) => ({
-  // estado inicial
+  // UI
   viewMode: "compact",
   filterPanelOpen: true,
-  filters: {
-    almacen: "",
-    producto: "",
-    proveedor: "",
-  },
 
-  // acciones
+  // datos
+  filters: INITIAL_FILTERS,
+  appliedFilters: INITIAL_FILTERS,
+  hasApplied: false,
+
+  // acciones UI
   setViewMode: (mode) => set({ viewMode: mode }),
   toggleFilterPanel: () =>
     set((state) => ({ filterPanelOpen: !state.filterPanelOpen })),
   closeFilterPanel: () => set({ filterPanelOpen: false }),
+
+  // acciones filtros
   setFilters: (filters) => set({ filters }),
+  applyFilters: (filters) =>
+    set({
+      filters,
+      appliedFilters: filters,
+      hasApplied: true,
+      filterPanelOpen: false,
+    }),
+  clearFilters: () =>
+    set({
+      filters: INITIAL_FILTERS,
+      appliedFilters: INITIAL_FILTERS,
+      hasApplied: false,
+    }),
 }));

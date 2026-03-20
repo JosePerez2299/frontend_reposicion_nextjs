@@ -1,18 +1,10 @@
 import { useAnalisisStore } from "@/stores/resposicion-analisis.store";
 
 export function AnalisisFilterPanel() {
-  const { filters, setFilters } = useAnalisisStore();
-  const handleSearch = () => {
-    setFilters({
-      almacen: '1',
-      producto: 'PRODUCTO_1',
-      proveedor: 'PROVEEDOR_1',
-    });
-  };
+  const { filters, applyFilters, setFilters } = useAnalisisStore();
 
-
-  const onClickSearch = () => {
-    handleSearch();
+  const onClickFilters = () => {
+    applyFilters(filters);
   };
 
   const handleClear = () => {
@@ -20,14 +12,17 @@ export function AnalisisFilterPanel() {
   };
   return (
     <div className="flex gap-2 w-full bg-secondary p-2 rounded">
-      <select value={filters.almacen} onChange={(e) => setFilters({ ...filters, almacen: e.target.value })}>
+      <select
+        value={filters.stores}
+        onChange={(e) => setFilters({ ...filters, stores: e.target.value })}
+      >
         <option value="">Todos</option>
         <option value="1">1</option>
         <option value="2">2</option>
         <option value="3">3</option>
       </select>
 
-      <button onClick={onClickSearch}>Buscar</button>
+      <button onClick={onClickFilters}>Buscar</button>
     </div>
   );
 }

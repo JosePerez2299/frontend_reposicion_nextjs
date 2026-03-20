@@ -3,41 +3,65 @@
 import { Topbar } from "@/components/layout/Topbar";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useAnalisisStore } from "@/stores/resposicion-analisis.store";
 import { LayoutGrid, ListFilter, Table } from "lucide-react";
+
+interface AnalisisTopBarProps {
+  title: string;
+  subtitle: string;
+}
 
 const TOGGLE_ITEM_CLASS = cn(
   "gap-1.5 h-7 px-3 text-xs rounded-sm text-muted-foreground",
   "data-[state=on]:bg-primary data-[state=on]:text-primary-foreground",
 );
 
-export function AnalisisTopBar({
-  title,
-  subtitle,
-}: {
-  title: string;
-  subtitle: string;
-}) {
-  const { viewMode, filterPanelOpen, setViewMode, toggleFilterPanel } =
-    useAnalisisStore();
+export function AnalisisTopBar({ title, subtitle }: AnalisisTopBarProps) {
+  const {
+    viewMode,
+    filterPanelOpen,
+    hasApplied,
+    setViewMode,
+    toggleFilterPanel,
+  } = useAnalisisStore();
 
+  const handleClickFilter = () => {
+    if (hasApplied) {
+      toggleFilterPanel();
+    }
+  };
+  
   return (
     <Topbar title={title} subtitle={subtitle}>
       <div className="flex items-center gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={toggleFilterPanel}
-          className={cn(
-            "h-7 gap-1.5 text-xs",
-            filterPanelOpen &&
-              "bg-primary text-primary-foreground border-primary hover:bg-primary/90 hover:text-primary-foreground",
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleClickFilter}
+              className={cn(
+                "h-7 gap-1.5 text-xs",
+                filterPanelOpen &&
+                  "bg-primary text-primary-foreground border-primary hover:bg-primary/90 hover:text-primary-foreground",
+              )}
+            >
+              <ListFilter size={13} />
+              Filtrar
+            </Button>
+          </TooltipTrigger>
+          {!hasApplied && (
+            <TooltipContent>
+              <p>No hay filtros aplicados</p>
+            </TooltipContent>
           )}
-        >
-          <ListFilter size={13} />
-          Filtrar
-        </Button>
+        </Tooltip>
 
         <ToggleGroup
           type="single"
