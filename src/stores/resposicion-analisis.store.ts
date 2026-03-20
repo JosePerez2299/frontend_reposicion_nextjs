@@ -24,15 +24,15 @@ interface AnalisisStore {
 }
 
 export interface AnalisisFilters {
-  stores: string;
-  product: string;
-  provider: string;
+  category: string;
+  group: string;
+  subgroup: string;
 }
 
 const INITIAL_FILTERS: AnalisisFilters = {
-  stores: "",
-  product: "",
-  provider: "",
+  category: "",
+  group: "",
+  subgroup: "",
 };
 
 export const useAnalisisStore = create<AnalisisStore>((set) => ({

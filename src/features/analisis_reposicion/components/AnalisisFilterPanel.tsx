@@ -1,70 +1,105 @@
+"use client";
+
+import { useForm, useWatch } from "react-hook-form";
 import { useAnalisisStore } from "@/stores/resposicion-analisis.store";
 import { useOpcionesFiltros } from "../queries/filtros.queries";
+import { Combobox } from "@/components/ui/combobox";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Label } from "@/components/ui/label";
+import type { Category, Group } from "@/schemas/entities/product.schema";
+
+interface FilterForm {
+  category: string;
+  group: string;
+  subgroup: string;
+}
+function FiltersSkeleton() {
+  return (
+    <div className="flex gap-3 p-3">
+      {Array.from({ length: 3 }).map((_, i) => (
+        <div key={i} className="flex flex-col gap-1.5">
+          <Skeleton className="h-3 w-16" />
+          <Skeleton className="h-8 w-[160px]" />
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export function AnalisisFilterPanel() {
-  const { filters, applyFilters, appliedFilters } = useAnalisisStore();
-  const {
-    data: opcionesFiltros,
-    isLoading: isLoadingFiltros,
-    isError,
-  } = useOpcionesFiltros();
+  const { appliedFilters } = useAnalisisStore();
+  const { data: opciones, isLoading, isError } = useOpcionesFiltros();
 
-  if (isError) {
+  const { control, setValue } = useForm<FilterForm>({
+    defaultValues: {
+      category: appliedFilters?.category ?? "",
+      group: appliedFilters?.group ?? "",
+      subgroup: appliedFilters?.subgroup ?? "",
+    },
+  });
+
+  const categorySelected = useWatch({ control, name: "category" });
+  const groupSelected = useWatch({ control, name: "group" });
+
+  const groups: Group[] =
+    opciones?.find((c: Category) => c.id === categorySelected)?.groups ?? [];
+
+  const subgroups = groups.find((g) => g.id === groupSelected)?.subgroups ?? [];
+
+  if (isError)
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-red-500">Error al cargar los filtros</div>
+      <div className="p-3 text-sm text-destructive">
+        Error al cargar los filtros
       </div>
     );
-  }
+
+  if (isLoading) return <FiltersSkeleton />;
 
   return (
-    <div className="flex gap-2 w-full bg-secondary p-2 rounded">
-      <div className="flex gap-2 w-full bg-secondary p-4 rounded">
-        <div className="w-full">
-          {isLoadingFiltros ? (
-            <div className="flex items-center justify-center h-64">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-          ) : (
-            opcionesFiltros?.map((categoria: any) => (
-              <div key={categoria.id} className="mb-6">
-                {/* Level 1: Categoria */}
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-2 h-2 bg-primary rounded-full"></div>
-                  <h3 className="font-semibold text-lg">{categoria.name}</h3>
-                </div>
+    <div className="flex flex-wrap items-end gap-3 w-full bg-secondary/50 border-b border-border p-3">
+      <div className="flex flex-col gap-1.5">
+        <Label className="text-xs text-muted-foreground">Categoría</Label>
+        <Combobox
+          options={opciones ?? []}
+          value={categorySelected}
+          onChange={(val) => {
+            setValue("category", val);
+            setValue("group", "");
+            setValue("subgroup", "");
+          }}
+          placeholder="Todas"
+          searchPlaceholder="Buscar categoría..."
+          className="w-[160px]"
+        />
+      </div>
 
-                {/* Level 2: Groups */}
-                <div className="ml-6 space-y-3">
-                  {categoria.groups.map((group: any) => (
-                    <div
-                      key={group.id}
-                      className="border-l-2 border-gray-300 pl-4"
-                    >
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="w-1.5 h-1.5 bg-secondary rounded-full"></div>
-                        <h4 className="font-medium">{group.name}</h4>
-                      </div>
+      <div className="flex flex-col gap-1.5">
+        <Label className="text-xs text-muted-foreground">Colección</Label>
+        <Combobox
+          options={groups}
+          value={groupSelected}
+          onChange={(val) => {
+            setValue("group", val);
+            setValue("subgroup", "");
+          }}
+          placeholder={!categorySelected ? "Selecciona cat." : "Todas"}
+          searchPlaceholder="Buscar colección..."
+          disabled={!categorySelected}
+          className="w-[160px]"
+        />
+      </div>
 
-                      {/* Level 3: Subgroups */}
-                      <div className="ml-4 space-y-1">
-                        {group.subgroups.map((subgroup: any) => (
-                          <div
-                            key={subgroup.id}
-                            className="flex items-center gap-2 text-sm text-gray-600"
-                          >
-                            <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
-                            <span>{subgroup.name}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))
-          )}
-        </div>
+      <div className="flex flex-col gap-1.5">
+        <Label className="text-xs text-muted-foreground">Subcolección</Label>
+        <Combobox
+          options={subgroups}
+          value={useWatch({ control, name: "subgroup" })}
+          onChange={(val) => setValue("subgroup", val)}
+          placeholder={!groupSelected ? "Selecciona col." : "Todas"}
+          searchPlaceholder="Buscar subcolección..."
+          disabled={!groupSelected}
+          className="w-[160px]"
+        />
       </div>
     </div>
   );
