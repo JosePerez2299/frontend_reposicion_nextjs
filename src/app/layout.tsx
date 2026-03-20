@@ -13,7 +13,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SOLE",
+  icons: {
+    icon: "/icons/logo.svg",
+  },
+  title: "RS Stellar",
   description: "Sistema de reposición",
 };
 
