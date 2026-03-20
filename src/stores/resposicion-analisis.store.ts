@@ -25,14 +25,14 @@ interface AnalisisStore {
 
 export interface AnalisisFilters {
   category: string;
-  group: string;
-  subgroup: string;
+  groups: string[];
+  subgroups: string[];
 }
 
 const INITIAL_FILTERS: AnalisisFilters = {
   category: "",
-  group: "",
-  subgroup: "",
+  groups: [],
+  subgroups: [],
 };
 
 export const useAnalisisStore = create<AnalisisStore>((set) => ({
