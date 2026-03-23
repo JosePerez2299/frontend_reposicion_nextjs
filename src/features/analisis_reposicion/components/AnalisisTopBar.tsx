@@ -26,17 +26,18 @@ export function AnalisisTopBar({ title, subtitle }: AnalisisTopBarProps) {
   const {
     viewMode,
     filterPanelOpen,
-    hasApplied,
+    hasActiveFilters,
     setViewMode,
     toggleFilterPanel,
   } = useAnalisisStore();
 
+  const hasApplied = hasActiveFilters();
   const handleClickFilter = () => {
     if (hasApplied) {
       toggleFilterPanel();
     }
   };
-  
+
   return (
     <Topbar title={title} subtitle={subtitle}>
       <div className="flex items-center gap-2">

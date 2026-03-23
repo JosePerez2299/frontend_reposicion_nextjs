@@ -1,20 +1,19 @@
 import { useAnalisisStore } from "@/stores/resposicion-analisis.store";
 import { AnalisisFilterPanel } from "./AnalisisFilterPanel";
 import { AnalisisTable } from "./AnalisisTable";
+import { AnalisisStatsCards } from "./AnalisisStatsCards";
 
 export const AnalisisView = () => {
-  const { viewMode, hasApplied, filterPanelOpen } =
+  const { viewMode, filters, hasActiveFilters, filterPanelOpen } =
     useAnalisisStore();
   return (
     <div>
       {/* Filtros */}
       {filterPanelOpen && <AnalisisFilterPanel />}
-
       {/* Tabla */}
-      {!hasApplied ? (
+      {hasActiveFilters() ? (
         <>
-          <hr className="mb-4" />
-          <h2 className="text-lg text-center font-semibold mb-4">Tabla</h2>
+          <AnalisisStatsCards />
           <AnalisisTable viewMode={viewMode} />
         </>
       ) : (

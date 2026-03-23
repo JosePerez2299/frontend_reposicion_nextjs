@@ -7,63 +7,66 @@ interface AnalisisStore {
   viewMode: ViewMode;
   filterPanelOpen: boolean;
 
-  // datos
+  // estado efectivo (source of truth)
   filters: AnalisisFilters;
-  appliedFilters: AnalisisFilters;
-  hasApplied: boolean;
 
   // acciones UI
   setViewMode: (mode: ViewMode) => void;
   toggleFilterPanel: () => void;
   closeFilterPanel: () => void;
-
+  hasActiveFilters: () => boolean;
   // acciones filtros
   setFilters: (filters: AnalisisFilters) => void;
-  applyFilters: (filters: AnalisisFilters) => void;
   clearFilters: () => void;
 }
 
 export interface AnalisisFilters {
+  dates: {
+    start: string;
+    end: string;
+  };
   category: string;
   groups: string[];
   subgroups: string[];
 }
 
 const INITIAL_FILTERS: AnalisisFilters = {
+  dates: {
+    start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split("T")[0],
+    end: new Date().toISOString().split("T")[0],
+  },
   category: "",
-  groups: [],
+  groups: [], 
   subgroups: [],
 };
 
-export const useAnalisisStore = create<AnalisisStore>((set) => ({
+export const useAnalisisStore = create<AnalisisStore>((set, get) => ({
   // UI
   viewMode: "compact",
   filterPanelOpen: true,
 
   // datos
   filters: INITIAL_FILTERS,
-  appliedFilters: INITIAL_FILTERS,
-  hasApplied: false,
 
   // acciones UI
   setViewMode: (mode) => set({ viewMode: mode }),
   toggleFilterPanel: () =>
     set((state) => ({ filterPanelOpen: !state.filterPanelOpen })),
   closeFilterPanel: () => set({ filterPanelOpen: false }),
-
+  hasActiveFilters: () => {
+    const { filters } = get();
+    return (
+      !!filters.category ||
+      filters.groups.length > 0 ||
+      filters.subgroups.length > 0
+    );
+  },
   // acciones filtros
   setFilters: (filters) => set({ filters }),
-  applyFilters: (filters) =>
-    set({
-      filters,
-      appliedFilters: filters,
-      hasApplied: true,
-      filterPanelOpen: false,
-    }),
   clearFilters: () =>
     set({
       filters: INITIAL_FILTERS,
-      appliedFilters: INITIAL_FILTERS,
-      hasApplied: false,
     }),
 }));

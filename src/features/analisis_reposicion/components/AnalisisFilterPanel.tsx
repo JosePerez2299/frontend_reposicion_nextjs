@@ -1,18 +1,18 @@
 "use client";
 
+import { useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { useAnalisisStore } from "@/stores/resposicion-analisis.store";
 import { useOpcionesFiltros } from "../queries/filtros.queries";
 import { Combobox } from "@/components/ui/combobox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import type { Category, Group } from "@/schemas/entities/product.schema";
+import type { AnalisisFilters } from "@/stores/resposicion-analisis.store";
+import { normalizeAllToEmpty } from "@/lib/utils";
 
-interface FilterForm {
-  category: string;
-  groups: string[];
-  subgroups: string[];
-}
+type FilterForm = AnalisisFilters;
 
 function FiltersSkeleton() {
   return (
@@ -28,19 +28,20 @@ function FiltersSkeleton() {
 }
 
 export function AnalisisFilterPanel() {
-  const { appliedFilters } = useAnalisisStore();
+  const { filters, setFilters, clearFilters, toggleFilterPanel } =
+    useAnalisisStore();
   const { data: opciones, isLoading, isError } = useOpcionesFiltros();
 
-  const { control, setValue } = useForm<FilterForm>({
-    defaultValues: {
-      category:  appliedFilters?.category  ?? "",
-      groups:    appliedFilters?.groups    ?? [],
-      subgroups: appliedFilters?.subgroups ?? [],
-    },
+  const { control, setValue, handleSubmit, reset } = useForm<FilterForm>({
+    defaultValues: filters,
   });
 
-  const categorySelected  = useWatch({ control, name: "category" });
-  const groupsSelected    = useWatch({ control, name: "groups" });
+  useEffect(() => {
+    reset(filters);
+  }, [filters, reset]);
+
+  const categorySelected = useWatch({ control, name: "category" });
+  const groupsSelected = useWatch({ control, name: "groups" });
   const subgroupsSelected = useWatch({ control, name: "subgroups" });
 
   const groups: Group[] =
@@ -53,20 +54,40 @@ export function AnalisisFilterPanel() {
         id: s.id,
         name: `${g.id} · ${s.name}`,
         groupId: g.id,
-      }))
+      })),
     );
 
-  if (isError) return (
-    <div className="p-3 text-sm text-destructive border-b border-border">
-      Error al cargar los filtros
-    </div>
-  );
+  const onSubmit = (values: FilterForm) => {
+    if (!values.category) return;
+
+    const normalizedValues: FilterForm = {
+      ...values,
+      groups: normalizeAllToEmpty(values.groups, groups.length),
+      subgroups: normalizeAllToEmpty(values.subgroups, subgroups.length),
+    };
+
+    toggleFilterPanel();
+    setFilters(normalizedValues);
+  };
+
+  const onClear = () => {
+    clearFilters(); // limpia el store → el useEffect resetea el form
+  };
+
+  if (isError)
+    return (
+      <div className="p-3 text-sm text-destructive border-b border-border">
+        Error al cargar los filtros
+      </div>
+    );
 
   if (isLoading) return <FiltersSkeleton />;
 
   return (
-    <div className="flex flex-wrap items-end gap-3 bg-secondary/50 border-b border-border p-3">
-
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="flex flex-wrap items-end gap-3 bg-secondary/50 border-b border-border p-3"
+    >
       <div className="flex flex-col gap-1.5">
         <Label className="text-xs text-muted-foreground">Categoría</Label>
         <Combobox
@@ -96,7 +117,7 @@ export function AnalisisFilterPanel() {
               .flatMap((g) => g.subgroups.map((s) => s.id));
             setValue(
               "subgroups",
-              subgroupsSelected.filter((id) => validSubIds.includes(id))
+              subgroupsSelected.filter((id) => validSubIds.includes(id)),
             );
           }}
           placeholder={!categorySelected ? "Selecciona cat." : "Todas"}
@@ -120,6 +141,25 @@ export function AnalisisFilterPanel() {
         />
       </div>
 
-    </div>
+      <div className="flex items-end gap-2 ml-auto">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-8 text-xs"
+          onClick={onClear}
+        >
+          Limpiar
+        </Button>
+        <Button
+          type="submit"
+          size="sm"
+          className="h-8 text-xs"
+          disabled={!categorySelected}
+        >
+          Aplicar
+        </Button>
+      </div>
+    </form>
   );
 }
