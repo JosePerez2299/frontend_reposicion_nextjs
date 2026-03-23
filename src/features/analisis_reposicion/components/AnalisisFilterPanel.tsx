@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useForm, useWatch } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { useAnalisisStore } from "@/stores/resposicion-analisis.store";
 import { useOpcionesFiltros } from "../queries/filtros.queries";
 import { Combobox } from "@/components/ui/combobox";
@@ -12,6 +12,9 @@ import type { Category, Group } from "@/schemas/entities/product.schema";
 import type { AnalisisFilters } from "@/stores/resposicion-analisis.store";
 import { normalizeAllToEmpty } from "@/lib/utils";
 
+import { DatePickerWithRange } from "@/components/ui/date-rangepicker";
+import type { DateRange } from "react-day-picker";
+import { format, parseISO } from "date-fns";
 type FilterForm = AnalisisFilters;
 
 function FiltersSkeleton() {
@@ -31,6 +34,9 @@ export function AnalisisFilterPanel() {
   const { filters, setFilters, clearFilters, toggleFilterPanel } =
     useAnalisisStore();
   const { data: opciones, isLoading, isError } = useOpcionesFiltros();
+
+  const maxDate = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const minDate = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000);
 
   const { control, setValue, handleSubmit, reset } = useForm<FilterForm>({
     defaultValues: filters,
@@ -57,8 +63,11 @@ export function AnalisisFilterPanel() {
       })),
     );
 
+  const isValidForm = () => {
+    return filters.dates.start && filters.dates.end;
+  };
   const onSubmit = (values: FilterForm) => {
-    if (!values.category) return;
+    if (!isValidForm()) return;
 
     const normalizedValues: FilterForm = {
       ...values,
@@ -88,6 +97,41 @@ export function AnalisisFilterPanel() {
       onSubmit={handleSubmit(onSubmit)}
       className="flex flex-wrap items-end gap-3 bg-secondary/50 border-b border-border p-3"
     >
+      <div className="flex flex-col gap-1.5">
+        <Label className="text-xs text-muted-foreground">Rango de fechas</Label>
+        <Controller
+          control={control}
+          name="dates"
+          render={({ field }) => {
+            const currentRange: DateRange | undefined = field.value?.start
+              ? {
+                  from: parseISO(field.value.start),
+                  to: field.value?.end ? parseISO(field.value.end) : undefined,
+                }
+              : undefined;
+
+            return (
+              <DatePickerWithRange
+                value={currentRange}
+                minDate={minDate}
+                maxDate={maxDate}
+                onChange={(range) => {
+                  const start = range?.from
+                    ? format(range.from, "yyyy-MM-dd")
+                    : "";
+                  const end = range?.to
+                    ? format(range.to, "yyyy-MM-dd")
+                    : start;
+
+                  field.onChange({ start, end });
+                }}
+                placeholder="Todas"
+                className="w-[200px]"
+              />
+            );
+          }}
+        />
+      </div>
       <div className="flex flex-col gap-1.5">
         <Label className="text-xs text-muted-foreground">Categoría</Label>
         <Combobox
@@ -155,7 +199,7 @@ export function AnalisisFilterPanel() {
           type="submit"
           size="sm"
           className="h-8 text-xs"
-          disabled={!categorySelected}
+          disabled={!isValidForm()}
         >
           Aplicar
         </Button>

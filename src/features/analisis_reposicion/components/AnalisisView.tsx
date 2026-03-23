@@ -2,6 +2,7 @@ import { useAnalisisStore } from "@/stores/resposicion-analisis.store";
 import { AnalisisFilterPanel } from "./AnalisisFilterPanel";
 import { AnalisisTable } from "./AnalisisTable";
 import { AnalisisStatsCards } from "./AnalisisStatsCards";
+import { DatePickerWithRange } from "@/components/ui/date-rangepicker";
 
 export const AnalisisView = () => {
   const { viewMode, filters, hasActiveFilters, filterPanelOpen } =
@@ -17,7 +18,9 @@ export const AnalisisView = () => {
           <AnalisisTable viewMode={viewMode} />
         </>
       ) : (
-        <div>No hay filtros aplicados</div>
+        <div className="flex items-center justify-center h-full">
+          <div>No hay filtros aplicados</div>
+        </div>
       )}
     </div>
   );
