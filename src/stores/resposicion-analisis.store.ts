@@ -22,22 +22,23 @@ interface AnalisisStore {
 }
 
 export interface AnalisisFilters {
-  dates: DateRange;
-  category: string;
-  groups: string[];
-  subgroups: string[];
+  dates: DateRange
+  category: string
+  groups: string[]
+  subgroups: string[]
+  productIds: string[]    
 }
-
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-const INITIAL_FILTERS: AnalisisFilters = {
+export const INITIAL_FILTERS: AnalisisFilters = {
   dates: {
-    from: undefined,
-    to: undefined,
+    from: new Date(Date.now() - DAY_MS - 29 * DAY_MS),
+    to: new Date(Date.now() - DAY_MS),
   },
   category: "",
   groups: [],
   subgroups: [],
+  productIds: [],
 };
 
 export const useAnalisisStore = create<AnalisisStore>((set, get) => ({

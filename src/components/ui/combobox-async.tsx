@@ -1,74 +1,179 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { ChevronsUpDown, Loader2 } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
+import { useState } from "react";
+import { ChevronsUpDown, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover'
+} from "@/components/ui/popover";
+import { ComboboxVirtualList } from "./combobox-virtual-list";
 
 export interface Option {
-  id: string
-  name: string
+  id: string;
+  name: string;
 }
 
-interface ComboboxAsyncProps {
-  value: string
-  onChange: (value: string) => void
-  onSearchChange: (search: string) => void
-  options: Option[]
-  loading?: boolean
-  placeholder?: string
-  searchPlaceholder?: string
-  emptyText?: string
-  disabled?: boolean
-  className?: string
+interface ComboboxAsyncBaseProps {
+  onSearchChange: (search: string) => void;
+  options: Option[];
+  loading?: boolean;
+  placeholder?: string;
+  searchPlaceholder?: string;
+  emptyText?: string;
+  disabled?: boolean;
+  className?: string;
 }
 
-export function ComboboxAsync({
-  value,
-  onChange,
-  onSearchChange,
-  options,
-  loading = false,
-  placeholder = 'Seleccionar...',
-  searchPlaceholder = 'Buscar...',
-  emptyText = 'Sin resultados',
-  disabled = false,
-  className,
-}: ComboboxAsyncProps) {
-  const [open, setOpen] = useState(false)
-  const [search, setSearch] = useState('')
+interface ComboboxAsyncSingleProps extends ComboboxAsyncBaseProps {
+  multi?: false;
+  value: string;
+  onChange: (value: string) => void;
+}
 
-  const selected = options.find((o) => o.id === value)
+interface ComboboxAsyncMultiProps extends ComboboxAsyncBaseProps {
+  multi: true;
+  value: string[];
+  onChange: (value: string[]) => void;
+}
+
+type ComboboxAsyncProps = ComboboxAsyncSingleProps | ComboboxAsyncMultiProps;
+
+function Checkbox({
+  checked,
+  indeterminate = false,
+}: {
+  checked: boolean;
+  indeterminate?: boolean;
+}) {
+  return (
+    <div
+      className={cn(
+        "w-4 h-4 rounded-[3px] border flex items-center justify-center flex-shrink-0 transition-colors",
+        checked || indeterminate
+          ? "bg-primary border-primary"
+          : "border-border bg-background",
+      )}
+    >
+      {indeterminate && !checked && (
+        <div className="w-2 h-[1.5px] bg-primary-foreground rounded-full" />
+      )}
+      {checked && (
+        <svg width="9" height="7" viewBox="0 0 9 7" fill="none">
+          <path
+            d="M1 3.5L3.5 6L8 1"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      )}
+    </div>
+  );
+}
+
+export function ComboboxAsync(props: ComboboxAsyncProps) {
+  const {
+    onSearchChange,
+    options,
+    loading = false,
+    placeholder = "Seleccionar...",
+    searchPlaceholder = "Buscar...",
+    emptyText = "Sin resultados",
+    disabled = false,
+    className,
+  } = props;
+
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+
+  const isMulti = props.multi === true;
+  const selectedIds = isMulti ? props.value : props.value ? [props.value] : [];
+  const count = selectedIds.length;
+
+  // Por estas
+  const visibleIds = options.map((o) => o.id);
+  const allVisibleSelected =
+    visibleIds.length > 0 && visibleIds.every((id) => selectedIds.includes(id));
+  const someVisibleSelected =
+    visibleIds.some((id) => selectedIds.includes(id)) && !allVisibleSelected;
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value
-    setSearch(val)
-    onSearchChange(val)
-  }
+    const val = e.target.value;
+    setSearch(val);
+    onSearchChange(val);
+  };
 
   const handleSelect = (id: string) => {
-    onChange(value === id ? '' : id)
-    setOpen(false)
-  }
+    if (!isMulti) {
+      props.onChange(props.value === id ? "" : id);
+      setOpen(false);
+      return;
+    }
+    props.onChange(
+      props.value.includes(id)
+        ? props.value.filter((v) => v !== id)
+        : [...props.value, id],
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (!isMulti) return;
+    if (allVisibleSelected) {
+      // deselecciona solo los visibles, mantiene el resto
+      props.onChange(props.value.filter((id) => !visibleIds.includes(id)));
+    } else {
+      // acumula los visibles a los ya seleccionados
+      props.onChange(Array.from(new Set([...props.value, ...visibleIds])));
+    }
+  };
+
+  const handleClear = () => {
+    if (isMulti) props.onChange([]);
+    else {
+      props.onChange("");
+      setOpen(false);
+    }
+  };
 
   const handleOpenChange = (o: boolean) => {
-    setOpen(o)
+    setOpen(o);
     if (!o) {
-      setSearch('')
-      onSearchChange('')
+      setSearch("");
+      onSearchChange("");
     }
-  }
+  };
 
-  const triggerContent = selected ? (
-    <span className="truncate">{selected.name}</span>
-  ) : (
-    <span className="text-muted-foreground truncate">{placeholder}</span>
-  )
+  const triggerContent = () => {
+    if (!isMulti) {
+      const selected = options.find((o) => o.id === props.value);
+      return selected ? (
+        <span className="truncate">{selected.name}</span>
+      ) : (
+        <span className="text-muted-foreground truncate">{placeholder}</span>
+      );
+    }
+    if (count === 0) {
+      return (
+        <span className="text-muted-foreground truncate">{placeholder}</span>
+      );
+    }
+    return (
+      <div className="flex items-center gap-1.5">
+        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-primary/15 text-primary">
+          {count}
+        </span>
+        <span className="text-xs text-muted-foreground truncate">
+          {count === 1
+            ? options.find((o) => o.id === selectedIds[0])?.name
+            : "seleccionados"}
+        </span>
+      </div>
+    );
+  };
 
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
@@ -79,17 +184,21 @@ export function ComboboxAsync({
           aria-expanded={open}
           disabled={disabled}
           className={cn(
-            'h-8 text-xs justify-between font-normal',
-            value && 'border-primary/40',
+            "h-8 text-xs justify-between font-normal",
+            count > 0 && "border-primary/40",
             className,
           )}
         >
-          {triggerContent}
+          {triggerContent()}
           <ChevronsUpDown size={11} className="ml-2 flex-shrink-0 opacity-40" />
         </Button>
       </PopoverTrigger>
 
-      <PopoverContent className="w-[260px] p-0" align="start">
+      <PopoverContent
+        className="w-[260px] p-0"
+        align="start"
+        onCloseAutoFocus={(e) => e.preventDefault()}
+      >
         {/* search */}
         <div className="border-b border-border px-2 py-1.5">
           <input
@@ -97,30 +206,37 @@ export function ComboboxAsync({
             value={search}
             onChange={handleSearchChange}
             className={cn(
-              'w-full bg-transparent text-xs outline-none placeholder:text-muted-foreground',
-              'h-7 px-2 rounded-md border border-border focus:border-primary transition-colors',
+              "w-full bg-transparent text-xs outline-none placeholder:text-muted-foreground",
+              "h-7 px-2 rounded-md border border-border focus:border-primary transition-colors",
             )}
             autoFocus
           />
         </div>
 
-        {/* opción limpiar */}
-        <div
-          className="flex items-center gap-2 px-2 h-8 text-xs cursor-pointer border-b border-border text-muted-foreground hover:bg-secondary transition-colors"
-          onClick={() => { onChange(''); setOpen(false) }}
-        >
-          <div className={cn(
-            'w-4 h-4 rounded-[3px] border flex items-center justify-center flex-shrink-0 transition-colors',
-            !value ? 'bg-primary border-primary' : 'border-border bg-background',
-          )}>
-            {!value && (
-              <svg width="9" height="7" viewBox="0 0 9 7" fill="none">
-                <path d="M1 3.5L3.5 6L8 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            )}
+        {/* seleccionar todos — solo multi */}
+        {isMulti && options.length > 0 && (
+          <div
+            className="flex items-center gap-2 px-2 h-8 text-xs cursor-pointer border-b border-border text-muted-foreground hover:bg-secondary transition-colors font-medium select-none"
+            onClick={handleSelectAll}
+          >
+            <Checkbox
+              checked={allVisibleSelected}
+              indeterminate={someVisibleSelected}
+            />
+            {`Seleccionar todos (${options.length})`}
           </div>
-          Todas
-        </div>
+        )}
+
+        {/* opción todas — solo single */}
+        {!isMulti && (
+          <div
+            className="flex items-center gap-2 px-2 h-8 text-xs cursor-pointer border-b border-border text-muted-foreground hover:bg-secondary transition-colors select-none"
+            onClick={handleClear}
+          >
+            <Checkbox checked={count === 0} />
+            Todas
+          </div>
+        )}
 
         {/* lista */}
         <div className="max-h-[256px] overflow-auto scrollbar-thin">
@@ -129,39 +245,32 @@ export function ComboboxAsync({
               <Loader2 size={12} className="animate-spin" />
               Buscando...
             </div>
-          ) : options.length === 0 ? (
-            <div className="py-4 text-center text-xs text-muted-foreground">
-              {search.trim() ? emptyText : 'Escribe para buscar'}
-            </div>
           ) : (
-            options.map((option) => {
-              const isSelected = option.id === value
-              return (
-                <div
-                  key={option.id}
-                  className={cn(
-                    'flex items-center gap-2 px-2 h-8 text-xs cursor-pointer transition-colors select-none',
-                    isSelected ? 'bg-primary/5' : 'hover:bg-secondary',
-                  )}
-                  onClick={() => handleSelect(option.id)}
-                >
-                  <div className={cn(
-                    'w-4 h-4 rounded-[3px] border flex items-center justify-center flex-shrink-0 transition-colors',
-                    isSelected ? 'bg-primary border-primary' : 'border-border bg-background',
-                  )}>
-                    {isSelected && (
-                      <svg width="9" height="7" viewBox="0 0 9 7" fill="none">
-                        <path d="M1 3.5L3.5 6L8 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    )}
-                  </div>
-                  <span className="truncate">{option.name}</span>
-                </div>
-              )
-            })
+            <ComboboxVirtualList
+              options={options}
+              selectedIds={selectedIds}
+              onToggle={handleSelect}
+              emptyText={emptyText}
+              emptySearch="Escribe para buscar"
+            />
           )}
         </div>
+
+        {/* footer conteo — solo multi */}
+        {isMulti && count > 0 && (
+          <div className="flex items-center justify-between px-3 py-2 border-t border-border">
+            <span className="text-xs text-muted-foreground">
+              {count} seleccionado{count > 1 ? "s" : ""}
+            </span>
+            <button
+              onClick={handleClear}
+              className="text-xs text-muted-foreground hover:text-destructive transition-colors"
+            >
+              Limpiar
+            </button>
+          </div>
+        )}
       </PopoverContent>
     </Popover>
-  )
+  );
 }

@@ -14,6 +14,8 @@ import { normalizeAllToEmpty } from "@/lib/utils";
 
 import { DatePickerWithRange } from "@/components/ui/date-rangepicker";
 import { useBuscarProductos } from "@/queries/productos.queries";
+import { ComboboxAsync } from "@/components/ui/combobox-async";
+import { useDebounce } from "@/hooks/use-debounce";
 type FilterForm = AnalisisFilters;
 
 function FiltersSkeleton() {
@@ -62,7 +64,10 @@ export function AnalisisFilterPanel() {
       })),
     );
   const datesSelected = useWatch({ control, name: "dates" });
-
+  const [productSearch, setProductSearch] = useState("");
+  const debouncedSearch = useDebounce(productSearch, 300);
+  const { data: productos = [], isFetching } =
+    useBuscarProductos(debouncedSearch);
   const isValidForm = () => !!datesSelected?.from && !!datesSelected?.to;
 
   const onSubmit = (values: FilterForm) => {
@@ -96,6 +101,26 @@ export function AnalisisFilterPanel() {
       onSubmit={handleSubmit(onSubmit)}
       className="flex flex-wrap items-end gap-3 bg-secondary/50 border-b border-border p-3"
     >
+      <div className="flex flex-col gap-1.5">
+        <Label className="text-xs text-muted-foreground">Producto</Label>
+        <Controller
+          control={control}
+          name="productIds"
+          render={({ field }) => (
+            <ComboboxAsync
+              multi // ← añadir
+              value={field.value}
+              onChange={field.onChange}
+              onSearchChange={setProductSearch}
+              options={productos}
+              loading={isFetching}
+              placeholder="Todas"
+              searchPlaceholder="Buscar producto..."
+              className="w-[200px]"
+            />
+          )}
+        />
+      </div>
       <div className="flex flex-col gap-1.5">
         <Label className="text-xs text-muted-foreground">Rango de fechas</Label>
         <Controller
