@@ -1,5 +1,8 @@
+import { useState } from "react";
+import { ChevronDown } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useAnalisisStore } from "@/stores/resposicion-analisis.store";
+import { cn } from "@/lib/utils";
 
 function StatCard({
   title,
@@ -27,10 +30,16 @@ function StatCard({
 
 export function AnalisisStatsCards() {
   const { filters } = useAnalisisStore();
+  const [open, setOpen] = useState(true);
 
-  const days_diff = filters.dates?.to && filters.dates?.from ? Math.ceil((filters.dates.to.getTime() - filters.dates.from.getTime()) / (1000 * 60 * 60 * 24)) : 0;
+  const days_diff =
+    filters.dates?.to && filters.dates?.from
+      ? Math.ceil(
+          (filters.dates.to.getTime() - filters.dates.from.getTime()) /
+            (1000 * 60 * 60 * 24),
+        )
+      : 0;
 
-  // Dummy stats data for inventory analysis
   const dummyStats = [
     {
       title: "STOCK",
@@ -66,18 +75,41 @@ export function AnalisisStatsCards() {
 
   return (
     <>
-      <div className="p-3 grid bg-secondary/50 grid-cols-5 gap-3">
-        {dummyStats.map((stat, index) => (
-          <StatCard
-            key={index}
-            title={stat.title}
-            value={stat.value}
-            footer={stat.footer}
-            variant={
-              stat.variant as "default" | "success" | "destructive" | "warning"
-            }
+      <div className="bg-secondary/50 border-b border-border">
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          className="flex items-center gap-1.5 w-full px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ChevronDown
+            size={13}
+            className={cn(
+              "transition-transform duration-200",
+              !open && "-rotate-90",
+            )}
           />
-        ))}
+          {open ? "Ocultar resumen" : "Mostrar resumen"}
+        </button>
+
+        {open && (
+          <div className="px-3 pb-3 grid grid-cols-5 gap-3">
+            {dummyStats.map((stat, index) => (
+              <StatCard
+                key={index}
+                title={stat.title}
+                value={stat.value}
+                footer={stat.footer}
+                variant={
+                  stat.variant as
+                    | "default"
+                    | "success"
+                    | "destructive"
+                    | "warning"
+                }
+              />
+            ))}
+          </div>
+        )}
       </div>
       <hr />
     </>
