@@ -1,6 +1,11 @@
 import type { Product } from "@/schemas/entities/product.schema";
 
-export async function fetchProductosByName(name: string): Promise<Product[]> {
+export async function fetchProductosByName(
+  name: string,
+  categoryId: string,
+  groups: string[],
+  subgroups: string[],
+): Promise<Product[]> {
   const dummyProductos: Product[] = [
     { id: "1", name: "Bora Bora 2.0", sku: "SKU-001" },
     { id: "2", name: "Bora Junior", sku: "SKU-002" },

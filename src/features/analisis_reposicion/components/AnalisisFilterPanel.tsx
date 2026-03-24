@@ -1,27 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Controller, useForm, useWatch } from "react-hook-form";
-import { useAnalisisStore } from "@/stores/resposicion-analisis.store";
-import { useOpcionesFiltros } from "../queries/filtros.queries";
+import { Controller } from "react-hook-form";
 import { Combobox } from "@/components/ui/combobox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import type { Category, Group } from "@/schemas/entities/product.schema";
-import type { AnalisisFilters } from "@/stores/resposicion-analisis.store";
-import { normalizeAllToEmpty } from "@/lib/utils";
-
 import { DatePickerWithRange } from "@/components/ui/date-rangepicker";
-import { useBuscarProductos } from "@/queries/productos.queries";
 import { ComboboxAsync } from "@/components/ui/combobox-async";
-import { useDebounce } from "@/hooks/use-debounce";
-type FilterForm = AnalisisFilters;
+import { useAnalisisFilterForm } from "../hooks/useAnalisisFilterForm";
 
 function FiltersSkeleton() {
   return (
     <div className="flex gap-3 p-3 border-b border-border">
-      {Array.from({ length: 3 }).map((_, i) => (
+      {Array.from({ length: 5 }).map((_, i) => (
         <div key={i} className="flex flex-col gap-1.5">
           <Skeleton className="h-3 w-16" />
           <Skeleton className="h-8 w-[160px]" />
@@ -32,60 +23,28 @@ function FiltersSkeleton() {
 }
 
 export function AnalisisFilterPanel() {
-  const { filters, setFilters, clearFilters, toggleFilterPanel } =
-    useAnalisisStore();
-  const { data: opciones, isLoading, isError } = useOpcionesFiltros();
-
-  const maxDate = new Date(Date.now() - 24 * 60 * 60 * 1000);
-  const minDate = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000);
-
-  const { control, setValue, handleSubmit, reset } = useForm<FilterForm>({
-    defaultValues: filters,
-  });
-
-  useEffect(() => {
-    reset(filters);
-  }, [filters, reset]);
-
-  const categorySelected = useWatch({ control, name: "category" });
-  const groupsSelected = useWatch({ control, name: "groups" });
-  const subgroupsSelected = useWatch({ control, name: "subgroups" });
-
-  const groups: Group[] =
-    opciones?.find((c: Category) => c.id === categorySelected)?.groups ?? [];
-
-  const subgroups = groups
-    .filter((g) => groupsSelected.includes(g.id))
-    .flatMap((g) =>
-      g.subgroups.map((s: { id: string; name: string }) => ({
-        id: s.id,
-        name: `${g.id} · ${s.name}`,
-        groupId: g.id,
-      })),
-    );
-  const datesSelected = useWatch({ control, name: "dates" });
-  const [productSearch, setProductSearch] = useState("");
-  const debouncedSearch = useDebounce(productSearch, 300);
-  const { data: productos = [], isFetching } =
-    useBuscarProductos(debouncedSearch);
-  const isValidForm = () => !!datesSelected?.from && !!datesSelected?.to;
-
-  const onSubmit = (values: FilterForm) => {
-    if (!isValidForm()) return;
-
-    const normalizedValues: FilterForm = {
-      ...values,
-      groups: normalizeAllToEmpty(values.groups, groups.length),
-      subgroups: normalizeAllToEmpty(values.subgroups, subgroups.length),
-    };
-
-    toggleFilterPanel();
-    setFilters(normalizedValues);
-  };
-
-  const onClear = () => {
-    clearFilters();
-  };
+  const {
+    opciones,
+    isLoading,
+    isError,
+    maxDate,
+    minDate,
+    groups,
+    subgroups,
+    productos,
+    isFetchingProductos,
+    control,
+    categorySelected,
+    groupsSelected,
+    subgroupsSelected,
+    isValidForm,
+    submit,
+    handleClear,
+    handleCategoryChange,
+    handleGroupsChange,
+    handleSubgroupsChange,
+    handleProductSearchChange,
+  } = useAnalisisFilterForm();
 
   if (isError)
     return (
@@ -98,9 +57,10 @@ export function AnalisisFilterPanel() {
 
   return (
     <form
-      onSubmit={handleSubmit(onSubmit)}
+      onSubmit={submit}
       className="flex flex-wrap items-end gap-3 bg-secondary/50 border-b border-border p-3"
     >
+      {/* Producto */}
       <div className="flex flex-col gap-1.5">
         <Label className="text-xs text-muted-foreground">Producto</Label>
         <Controller
@@ -108,12 +68,12 @@ export function AnalisisFilterPanel() {
           name="productIds"
           render={({ field }) => (
             <ComboboxAsync
-              multi // ← añadir
+              multi
               value={field.value}
               onChange={field.onChange}
-              onSearchChange={setProductSearch}
+              onSearchChange={handleProductSearchChange}
               options={productos}
-              loading={isFetching}
+              loading={isFetchingProductos}
               placeholder="Todas"
               searchPlaceholder="Buscar producto..."
               className="w-[200px]"
@@ -121,6 +81,8 @@ export function AnalisisFilterPanel() {
           )}
         />
       </div>
+
+      {/* Rango de fechas */}
       <div className="flex flex-col gap-1.5">
         <Label className="text-xs text-muted-foreground">Rango de fechas</Label>
         <Controller
@@ -138,38 +100,28 @@ export function AnalisisFilterPanel() {
           )}
         />
       </div>
+
+      {/* Categoría */}
       <div className="flex flex-col gap-1.5">
         <Label className="text-xs text-muted-foreground">Categoría</Label>
         <Combobox
           options={opciones ?? []}
           value={categorySelected}
-          onChange={(val) => {
-            setValue("category", val);
-            setValue("groups", []);
-            setValue("subgroups", []);
-          }}
+          onChange={handleCategoryChange}
           placeholder="Todas"
           searchPlaceholder="Buscar categoría..."
           className="w-[160px]"
         />
       </div>
 
+      {/* Colección */}
       <div className="flex flex-col gap-1.5">
         <Label className="text-xs text-muted-foreground">Colección</Label>
         <Combobox
           multi
           options={groups}
           value={groupsSelected}
-          onChange={(val) => {
-            setValue("groups", val);
-            const validSubIds = groups
-              .filter((g) => val.includes(g.id))
-              .flatMap((g) => g.subgroups.map((s) => s.id));
-            setValue(
-              "subgroups",
-              subgroupsSelected.filter((id) => validSubIds.includes(id)),
-            );
-          }}
+          onChange={handleGroupsChange}
           placeholder={!categorySelected ? "Selecciona cat." : "Todas"}
           searchPlaceholder="Buscar colección..."
           disabled={!categorySelected}
@@ -177,13 +129,14 @@ export function AnalisisFilterPanel() {
         />
       </div>
 
+      {/* Subcolección */}
       <div className="flex flex-col gap-1.5">
         <Label className="text-xs text-muted-foreground">Subcolección</Label>
         <Combobox
           multi
           options={subgroups}
           value={subgroupsSelected}
-          onChange={(val) => setValue("subgroups", val)}
+          onChange={handleSubgroupsChange}
           placeholder={!groupsSelected.length ? "Selecciona col." : "Todas"}
           searchPlaceholder="Buscar subcolección..."
           disabled={!groupsSelected.length}
@@ -191,13 +144,14 @@ export function AnalisisFilterPanel() {
         />
       </div>
 
+      {/* Acciones */}
       <div className="flex items-end gap-2 ml-auto">
         <Button
           type="button"
           variant="ghost"
           size="sm"
           className="h-8 text-xs"
-          onClick={onClear}
+          onClick={handleClear}
         >
           Limpiar
         </Button>
@@ -205,7 +159,7 @@ export function AnalisisFilterPanel() {
           type="submit"
           size="sm"
           className="h-8 text-xs"
-          disabled={!isValidForm()}
+          disabled={!isValidForm}
         >
           Aplicar
         </Button>

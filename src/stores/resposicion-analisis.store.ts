@@ -28,12 +28,11 @@ export interface AnalisisFilters {
   subgroups: string[]
   productIds: string[]    
 }
-const DAY_MS = 24 * 60 * 60 * 1000;
 
 export const INITIAL_FILTERS: AnalisisFilters = {
   dates: {
-    from: new Date(Date.now() - DAY_MS - 29 * DAY_MS),
-    to: new Date(Date.now() - DAY_MS),
+    from: undefined,
+    to: undefined,
   },
   category: "",
   groups: [],
@@ -57,6 +56,7 @@ export const useAnalisisStore = create<AnalisisStore>((set, get) => ({
   hasActiveFilters: () => {
     const { filters } = get();
     return (
+      filters.productIds.length > 0 ||
       (filters.dates.from !== undefined && filters.dates.to !== undefined) ||
       filters.category !== "" ||
       filters.groups.length > 0 ||
