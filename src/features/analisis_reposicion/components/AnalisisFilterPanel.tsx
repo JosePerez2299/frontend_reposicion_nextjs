@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { useAnalisisStore } from "@/stores/resposicion-analisis.store";
 import { useOpcionesFiltros } from "../queries/filtros.queries";
@@ -13,8 +13,7 @@ import type { AnalisisFilters } from "@/stores/resposicion-analisis.store";
 import { normalizeAllToEmpty } from "@/lib/utils";
 
 import { DatePickerWithRange } from "@/components/ui/date-rangepicker";
-import type { DateRange } from "react-day-picker";
-import { format, parseISO } from "date-fns";
+import { useBuscarProductos } from "@/queries/productos.queries";
 type FilterForm = AnalisisFilters;
 
 function FiltersSkeleton() {
@@ -62,10 +61,10 @@ export function AnalisisFilterPanel() {
         groupId: g.id,
       })),
     );
+  const datesSelected = useWatch({ control, name: "dates" });
 
-  const isValidForm = () => {
-    return filters.dates.start && filters.dates.end;
-  };
+  const isValidForm = () => !!datesSelected?.from && !!datesSelected?.to;
+
   const onSubmit = (values: FilterForm) => {
     if (!isValidForm()) return;
 
@@ -80,7 +79,7 @@ export function AnalisisFilterPanel() {
   };
 
   const onClear = () => {
-    clearFilters(); // limpia el store → el useEffect resetea el form
+    clearFilters();
   };
 
   if (isError)
@@ -102,34 +101,16 @@ export function AnalisisFilterPanel() {
         <Controller
           control={control}
           name="dates"
-          render={({ field }) => {
-            const currentRange: DateRange | undefined = field.value?.start
-              ? {
-                  from: parseISO(field.value.start),
-                  to: field.value?.end ? parseISO(field.value.end) : undefined,
-                }
-              : undefined;
-
-            return (
-              <DatePickerWithRange
-                value={currentRange}
-                minDate={minDate}
-                maxDate={maxDate}
-                onChange={(range) => {
-                  const start = range?.from
-                    ? format(range.from, "yyyy-MM-dd")
-                    : "";
-                  const end = range?.to
-                    ? format(range.to, "yyyy-MM-dd")
-                    : start;
-
-                  field.onChange({ start, end });
-                }}
-                placeholder="Todas"
-                className="w-[200px]"
-              />
-            );
-          }}
+          render={({ field }) => (
+            <DatePickerWithRange
+              value={field.value}
+              minDate={minDate}
+              maxDate={maxDate}
+              onChange={field.onChange}
+              placeholder="Todas"
+              className="w-[200px]"
+            />
+          )}
         />
       </div>
       <div className="flex flex-col gap-1.5">

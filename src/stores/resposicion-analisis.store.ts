@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { format } from "date-fns";
+import { DateRange } from "react-day-picker";
 
 type ViewMode = "compact" | "full";
 
@@ -22,10 +22,7 @@ interface AnalisisStore {
 }
 
 export interface AnalisisFilters {
-  dates: {
-    start: string;
-    end: string;
-  };
+  dates: DateRange;
   category: string;
   groups: string[];
   subgroups: string[];
@@ -35,8 +32,8 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 const INITIAL_FILTERS: AnalisisFilters = {
   dates: {
-    start: format(new Date(Date.now() - DAY_MS - 29 * DAY_MS), "yyyy-MM-dd"),
-    end: format(new Date(Date.now() - DAY_MS), "yyyy-MM-dd"),
+    from: undefined,
+    to: undefined,
   },
   category: "",
   groups: [],
@@ -59,8 +56,8 @@ export const useAnalisisStore = create<AnalisisStore>((set, get) => ({
   hasActiveFilters: () => {
     const { filters } = get();
     return (
-      (!!filters.dates.start && !!filters.dates.end) ||
-      !!filters.category ||
+      (filters.dates.from !== undefined && filters.dates.to !== undefined) ||
+      filters.category !== "" ||
       filters.groups.length > 0 ||
       filters.subgroups.length > 0
     );
