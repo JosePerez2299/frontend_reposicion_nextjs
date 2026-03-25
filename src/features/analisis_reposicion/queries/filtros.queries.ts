@@ -3,7 +3,7 @@ import { fetchOpcionesFiltros } from "@/services/analisis.service";
 
 export function useOpcionesFiltros() {
   return useQuery({
-    queryKey: ["analisis-ventas", "filtros-opciones"],
+    queryKey: ["analisis", "reposicion", "filtros", "opciones"],
     queryFn: fetchOpcionesFiltros,
     staleTime: 1000 * 60 * 30,
   });

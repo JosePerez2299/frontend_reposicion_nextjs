@@ -1,9 +1,8 @@
 import { useAnalisisStore } from "@/stores/resposicion-analisis.store";
 import { AnalisisFilterPanel } from "./AnalisisFilterPanel";
-import { AnalisisTable } from "./AnalisisTable";
+import TableSticky from "./AnalisisTable";
 import { AnalisisStatsCards } from "./AnalisisStatsCards";
 import { FilterX, Info } from "lucide-react";
-
 
 const NoFiltersMessage = () => {
   return (
@@ -14,7 +13,8 @@ const NoFiltersMessage = () => {
         </div>
         <h3 className="text-sm font-semibold">No hay filtros aplicados</h3>
         <p className="text-xs text-muted-foreground max-w-[320px]">
-          Selecciona un rango de fechas y aplica los filtros para ver el análisis.
+          Selecciona un rango de fechas y aplica los filtros para ver el
+          análisis.
         </p>
         <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
           <Info size={14} />
@@ -24,22 +24,32 @@ const NoFiltersMessage = () => {
     </div>
   );
 };
-
 export const AnalisisView = () => {
-  const { viewMode, filters, hasActiveFilters, filterPanelOpen } =
-    useAnalisisStore();
+  const { hasActiveFilters, filterPanelOpen } = useAnalisisStore();
+
   return (
-    <div>
+    <div className="flex flex-col h-full">
       {/* Filtros */}
-      {filterPanelOpen && <AnalisisFilterPanel />}
-      {/* Tabla */}
+      {filterPanelOpen && (
+        <div className="flex-none">
+          <AnalisisFilterPanel />
+        </div>
+      )}
+
       {hasActiveFilters() ? (
         <>
-          <AnalisisStatsCards />
-          <AnalisisTable viewMode={viewMode} />
+          {/* Stats */}
+          <div className="flex-none">
+            <AnalisisStatsCards />
+          </div>
+
+          {/* Tabla */}
+          <div className="flex-1 min-h-0">
+            <TableSticky />
+          </div>
         </>
       ) : (
-        <div className="w-full h-screen flex items-center justify-center">
+        <div className="flex-1 flex items-center justify-center">
           <NoFiltersMessage />
         </div>
       )}
