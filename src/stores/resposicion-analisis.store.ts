@@ -11,22 +11,29 @@ interface AnalisisStore {
   // estado efectivo (source of truth)
   filters: AnalisisFilters;
 
+  // paginación
+  page: number;
+
   // acciones UI
   setViewMode: (mode: ViewMode) => void;
   toggleFilterPanel: () => void;
   closeFilterPanel: () => void;
   hasActiveFilters: () => boolean;
+
   // acciones filtros
   setFilters: (filters: AnalisisFilters) => void;
   clearFilters: () => void;
+
+  // acciones paginación
+  setPage: (page: number) => void;
 }
 
 export interface AnalisisFilters {
-  dates: DateRange
-  category: string
-  groups: string[]
-  subgroups: string[]
-  productIds: string[]    
+  dates: DateRange;
+  category: string;
+  groups: string[];
+  subgroups: string[];
+  productIds: string[];
 }
 
 export const INITIAL_FILTERS: AnalisisFilters = {
@@ -48,6 +55,9 @@ export const useAnalisisStore = create<AnalisisStore>((set, get) => ({
   // datos
   filters: INITIAL_FILTERS,
 
+  // paginación
+  page: 1,
+
   // acciones UI
   setViewMode: (mode) => set({ viewMode: mode }),
   toggleFilterPanel: () =>
@@ -63,10 +73,12 @@ export const useAnalisisStore = create<AnalisisStore>((set, get) => ({
       filters.subgroups.length > 0
     );
   },
+
   // acciones filtros
-  setFilters: (filters) => set({ filters }),
-  clearFilters: () =>
-    set({
-      filters: INITIAL_FILTERS,
-    }),
+  // Al aplicar nuevos filtros, resetea la página a 1
+  setFilters: (filters) => set({ filters, page: 1 }),
+  clearFilters: () => set({ filters: INITIAL_FILTERS, page: 1 }),
+
+  // acciones paginación
+  setPage: (page) => set({ page }),
 }));

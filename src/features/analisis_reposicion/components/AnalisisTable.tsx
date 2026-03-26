@@ -10,6 +10,16 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+
 /* =========================
    TYPES & MOCK DATA
 ========================= */
@@ -20,11 +30,16 @@ type Row = {
 };
 
 const STORE_COUNT = 20;
-const storeKeys = Array.from({ length: STORE_COUNT }, (_, i) => `tienda${i + 1}`);
+const storeKeys = Array.from(
+  { length: STORE_COUNT },
+  (_, i) => `tienda${i + 1}`,
+);
 
 const data: Row[] = Array.from({ length: 50 }, (_, rowIndex) => ({
   modelo: `Modelo ${rowIndex + 1}`,
-  ...Object.fromEntries(storeKeys.map((key, i) => [key, (i + 1) * (rowIndex + 1)])),
+  ...Object.fromEntries(
+    storeKeys.map((key, i) => [key, (i + 1) * (rowIndex + 1)]),
+  ),
 }));
 
 /* =========================
@@ -74,13 +89,13 @@ const getTotalRowCellStyles = (column: Column<Row>): CSSProperties => {
 function useTableTotals(data: Row[]) {
   const rowTotals = useMemo(() => {
     return data.map((row) =>
-      storeKeys.reduce((sum, key) => sum + Number(row[key] ?? 0), 0)
+      storeKeys.reduce((sum, key) => sum + Number(row[key] ?? 0), 0),
     );
   }, [data]);
 
   const storeTotals = useMemo(() => {
     return storeKeys.map((key) =>
-      data.reduce((sum, row) => sum + Number(row[key] ?? 0), 0)
+      data.reduce((sum, row) => sum + Number(row[key] ?? 0), 0),
     );
   }, [data]);
 
@@ -95,30 +110,38 @@ function useTableTotals(data: Row[]) {
    COMPONENT: PAGINATION
 ========================= */
 
-function TablePagination({ table }: { table: any }) {
+function TablePagination({ table }: { table: ReturnType<typeof useReactTable<Row>> }) {
   return (
     <div className="flex items-center justify-between p-2 border-t bg-white">
-      <div className="text-sm">
-        Página {table.getState().pagination.pageIndex + 1} de{" "}
-        {table.getPageCount()}
-      </div>
+      <p className="text-sm text-muted-foreground">
+        Página{" "}
+        <span className="font-medium text-foreground">
+          {table.getState().pagination.pageIndex + 1}
+        </span>{" "}
+        de{" "}
+        <span className="font-medium text-foreground">
+          {table.getPageCount()}
+        </span>
+      </p>
 
-      <div className="flex gap-2">
-        <button
+      <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
-          className="px-2 py-1 border rounded disabled:opacity-50"
         >
           Anterior
-        </button>
+        </Button>
 
-        <button
+        <Button
+          variant="outline"
+          size="sm"
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
-          className="px-2 py-1 border rounded disabled:opacity-50"
         >
           Siguiente
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -152,14 +175,13 @@ export default function TableSticky() {
           const total = storeKeys.reduce((sum, key) => {
             return sum + Number(row.original[key] ?? 0);
           }, 0);
-
           return total;
         },
         accessorFn: (row) =>
           storeKeys.reduce((sum, key) => sum + Number(row[key] ?? 0), 0),
       },
     ],
-    []
+    [],
   );
 
   const table = useReactTable({
@@ -183,96 +205,96 @@ export default function TableSticky() {
   const { pageIndex, pageSize } = table.getState().pagination;
 
   return (
-    <div className="flex flex-col h-full border border-border">
+    <div className="flex flex-col h-full border rounded-md border-border">
       {/* SCROLLABLE AREA */}
       <div className="flex-1 overflow-auto">
-        <table
+        <Table
           style={{ width: table.getTotalSize() }}
           className="border-separate border-spacing-0"
         >
-          <thead className="sticky top-0 z-20">
+          <TableHeader className="sticky top-0 z-20">
             {table.getHeaderGroups().map((hg) => (
-              <tr key={hg.id}>
+              <TableRow key={hg.id}>
                 {hg.headers.map((header) => (
-                  <th
+                  <TableHead
                     key={header.id}
                     colSpan={header.colSpan}
                     style={getCommonPinningStyles(header.column)}
-                    className="border border-border px-2 py-2 bg-gray-100 text-xs font-medium text-left"
+                    className="border border-border bg-muted text-xs font-medium"
                   >
                     {header.isPlaceholder
                       ? null
                       : flexRender(
                           header.column.columnDef.header,
-                          header.getContext()
+                          header.getContext(),
                         )}
-                  </th>
+                  </TableHead>
                 ))}
-              </tr>
+              </TableRow>
             ))}
-          </thead>
+          </TableHeader>
 
-          <tbody>
+          <TableBody>
             {table.getRowModel().rows.map((row) => {
               const absoluteIndex = row.index + pageIndex * pageSize;
 
               return (
-                <tr key={row.id}>
+                <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
-                    <td
+                    <TableCell
                       key={cell.id}
                       style={getCommonPinningStyles(cell.column)}
-                      className="border border-border px-2 py-1.5 bg-white text-sm"
+                      className="border border-border bg-white text-sm"
                     >
                       {cell.column.id === "modelo"
                         ? flexRender(
                             cell.column.columnDef.cell,
-                            cell.getContext()
+                            cell.getContext(),
                           )
                         : cell.column.id === "total"
                           ? rowTotals[absoluteIndex]
                           : flexRender(
                               cell.column.columnDef.cell,
-                              cell.getContext()
+                              cell.getContext(),
                             )}
-                    </td>
+                    </TableCell>
                   ))}
-                </tr>
+                </TableRow>
               );
             })}
 
             {/* TOTAL ROW */}
-            <tr>
-              <td
+            <TableRow>
+              <TableCell
                 style={getTotalRowCellStyles(table.getColumn("modelo")!)}
-                className="border border-border px-2 py-1.5 text-sm"
+                className="border border-border text-sm"
               >
                 TOTAL
-              </td>
+              </TableCell>
 
               {storeKeys.map((key, index) => {
                 const column = table.getColumn(key)!;
 
                 return (
-                  <td
+                  <TableCell
                     key={key}
                     style={getTotalRowCellStyles(column)}
-                    className="border border-border px-2 py-1.5 text-sm text-right"
+                    className="border border-border text-sm text-right"
                   >
                     {storeTotals[index]}
-                  </td>
+                  </TableCell>
                 );
               })}
 
-              <td
+              <TableCell
                 style={getTotalRowCellStyles(table.getColumn("total")!)}
-                className="border border-border px-2 py-1.5 text-sm text-right"
+                className="border border-border text-sm text-right"
               >
                 {grandTotal}
-              </td>
-            </tr>
-          </tbody>
-        </table>
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
       </div>
 
       {/* FIXED FOOTER */}

@@ -1,38 +1,58 @@
+import axios, { AxiosError, AxiosInstance } from 'axios'
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api/v1'
 
 class ApiError extends Error {
-  constructor(public status: number, message: string) {
+  constructor(
+    public status: number,
+    public data: unknown,
+    message: string
+  ) {
     super(message)
     this.name = 'ApiError'
   }
 }
 
-async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE_URL}${endpoint}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      // 'Authorization': `Bearer ${token}`,
-    },
-    ...options,
-  })
+const apiInstance: AxiosInstance = axios.create({
+  baseURL: BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+})
 
-  if (!res.ok) {
-    throw new ApiError(res.status, `Error ${res.status}: ${res.statusText}`)
+apiInstance.interceptors.response.use(
+  (response) => response,
+  (error: AxiosError) => {
+    if (error.response) {
+      throw new ApiError(
+        error.response.status,
+        error.response.data,
+        `Error ${error.response.status}`
+      )
+    }
+
+    throw new ApiError(500, null, 'Network Error')
   }
-
-  return res.json()
-}
+)
 
 export const api = {
-  get: <T>(endpoint: string) =>
-    request<T>(endpoint),
+  async get<T>(endpoint: string, params?: Record<string, any>): Promise<T> {
+    const res = await apiInstance.get<T>(endpoint, { params })
+    return res.data
+  },
 
-  post: <T>(endpoint: string, body: unknown) =>
-    request<T>(endpoint, { method: 'POST', body: JSON.stringify(body) }),
+  async post<T>(endpoint: string, body: unknown): Promise<T> {
+    const res = await apiInstance.post<T>(endpoint, body)
+    return res.data
+  },
 
-  patch: <T>(endpoint: string, body: unknown) =>
-    request<T>(endpoint, { method: 'PATCH', body: JSON.stringify(body) }),
+  async patch<T>(endpoint: string, body: unknown): Promise<T> {
+    const res = await apiInstance.patch<T>(endpoint, body)
+    return res.data
+  },
 
-  delete: <T>(endpoint: string) =>
-    request<T>(endpoint, { method: 'DELETE' }),
+  async delete<T>(endpoint: string): Promise<T> {
+    const res = await apiInstance.delete<T>(endpoint)
+    return res.data
+  },
 }

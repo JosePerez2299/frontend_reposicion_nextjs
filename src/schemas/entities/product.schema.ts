@@ -19,7 +19,7 @@ const CategorySchema = z.object({
 const ProductSchema = z.object({
   id: z.string(),
   name: z.string(),
-  sku: z.string().optional(),
+  category_id: z.string(),
 });
 
 export const ProductSearchSchema = z.array(ProductSchema);

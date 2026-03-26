@@ -86,6 +86,7 @@ export function useAnalisisFilterForm() {
   };
 
   const handleCategoryChange = (val: string) => {
+ 
     setValue("category", val);
     setValue("groups", []);
     setValue("subgroups", []);

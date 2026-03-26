@@ -25,8 +25,8 @@ const NoFiltersMessage = () => {
   );
 };
 export const AnalisisView = () => {
-  const { hasActiveFilters, filterPanelOpen } = useAnalisisStore();
-
+  const { hasActiveFilters, filterPanelOpen, filters } = useAnalisisStore();
+  console.log(filters);
   return (
     <div className="flex flex-col h-full">
       {/* Filtros */}
@@ -45,7 +45,7 @@ export const AnalisisView = () => {
 
           {/* Tabla */}
           <div className="flex-1 min-h-0">
-            <TableSticky />
+            {JSON.stringify(filters)}
           </div>
         </>
       ) : (
