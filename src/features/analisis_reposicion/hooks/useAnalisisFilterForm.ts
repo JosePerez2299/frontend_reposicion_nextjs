@@ -1,4 +1,3 @@
-// useAnalisisFilters.ts
 "use client";
 
 import { useEffect, useState } from "react";
@@ -53,15 +52,13 @@ export function useAnalisisFilterForm() {
   const [productSearch, setProductSearch] = useState("");
   const debouncedSearch = useDebounce(productSearch, 300);
 
-  const {
-    data: productos = [],
-    isFetching: isFetchingProductos,
-  } = useBuscarProductos(
-    debouncedSearch,
-    categorySelected,
-    groupsSelected,
-    subgroupsSelected,
-  );
+  const { data: productos = [], isFetching: isFetchingProductos } =
+    useBuscarProductos(
+      debouncedSearch,
+      categorySelected,
+      groupsSelected,
+      subgroupsSelected,
+    );
 
   const isValidForm = !!datesSelected?.from && !!datesSelected?.to;
 
@@ -86,13 +83,14 @@ export function useAnalisisFilterForm() {
   };
 
   const handleCategoryChange = (val: string) => {
- 
+    setValue("productIds", []);
     setValue("category", val);
     setValue("groups", []);
     setValue("subgroups", []);
   };
 
   const handleGroupsChange = (val: string[]) => {
+    setValue("productIds", []);
     setValue("groups", val);
     const validSubIds = groups
       .filter((g) => val.includes(g.id))
@@ -105,6 +103,7 @@ export function useAnalisisFilterForm() {
   };
 
   const handleSubgroupsChange = (val: string[]) => {
+    setValue("productIds", []);
     setValue("subgroups", val);
   };
 
