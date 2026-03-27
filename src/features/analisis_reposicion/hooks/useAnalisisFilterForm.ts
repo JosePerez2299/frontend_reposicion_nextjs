@@ -109,7 +109,8 @@ export function useAnalisisFilterForm() {
   };
 
   const handleProductSearchChange = (term: string) => {
-    setProductSearch(term);
+    const trimmed = term.trim();
+    setProductSearch(trimmed);
   };
 
   return {
