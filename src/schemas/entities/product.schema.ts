@@ -22,6 +22,14 @@ const ProductSchema = z.object({
   category_id: z.string(),
 });
 
+const FilterOptions = z.object({
+  categories: z.array(CategorySchema),
+  stores: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+  })),
+});
+
 export const ProductSearchSchema = z.array(ProductSchema);
 
 export type Product = z.infer<typeof ProductSchema>;
@@ -30,6 +38,6 @@ export type ProductSearch = z.infer<typeof ProductSearchSchema>;
 export type Subgroup = z.infer<typeof SubgroupSchema>;
 export type Group = z.infer<typeof GroupSchema>;
 export type Category = z.infer<typeof CategorySchema>;
-export type FilterOptions = z.infer<typeof FilterOptionsSchema>;
+export type FilterOptions = z.infer<typeof FilterOptions>;
 
-export const FilterOptionsSchema = z.array(CategorySchema);
+export const FilterOptionsSchema = FilterOptions;

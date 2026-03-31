@@ -9,6 +9,9 @@ export const RotationRequest = z.object({
   groups: z.array(z.string()),
   subgroups: z.array(z.string()),
   productIds: z.array(z.string()),
+  storesIds: z.array(z.string()),
 });
+
+export type AnalisisFilters = z.infer<typeof RotationRequest>;
 
 export type RotationRequest = z.infer<typeof RotationRequest>;

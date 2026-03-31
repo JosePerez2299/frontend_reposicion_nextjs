@@ -1,16 +1,42 @@
 import { create } from "zustand";
-import { DateRange } from "react-day-picker";
+import { AnalisisFilters } from "@/schemas/api/analisis.schemas";
+
+interface AnalisisStore {
+  // UI
+  viewMode: "compact" | "detailed";
+  filterPanelOpen: boolean;
+
+  // datos
+  filters: AnalisisFilters;
+
+  // paginación
+  page: number;
+
+  // acciones UI
+  setViewMode: (mode: "compact" | "detailed") => void;
+  toggleFilterPanel: () => void;
+  closeFilterPanel: () => void;
+  hasActiveFilters: () => boolean;
+
+  // acciones filtros
+  setFilters: (filters: AnalisisFilters) => void;
+  clearFilters: () => void;
+
+  // acciones paginación
+  setPage: (page: number) => void;
+}
 
 
 export const INITIAL_FILTERS: AnalisisFilters = {
   dates: {
-    from: undefined,
-    to: undefined,
+    from: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+    to: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
   },
   category: "",
   groups: [],
   subgroups: [],
   productIds: [],
+  storesIds: [],
 };
 
 export const useAnalisisStore = create<AnalisisStore>((set, get) => ({

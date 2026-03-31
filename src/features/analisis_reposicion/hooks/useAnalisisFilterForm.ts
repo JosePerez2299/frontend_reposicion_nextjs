@@ -8,17 +8,7 @@ import { normalizeAllToEmpty } from "@/lib/utils";
 import { useBuscarProductos } from "@/queries/productos.queries";
 import { useDebounce } from "@/hooks/use-debounce";
 import type { Category, Group } from "@/schemas/entities/product.schema";
-
-interface AnalisisFilters {
-  dates: {
-    from: Date | undefined;
-    to: Date | undefined;
-  };
-  category: string;
-  groups: string[];
-  subgroups: string[];
-  productIds: string[];
-}
+import { AnalisisFilters } from "@/schemas/api/analisis.schemas";
 
 type FilterForm = AnalisisFilters;
 
@@ -45,9 +35,11 @@ export function useAnalisisFilterForm() {
   const groupsSelected = useWatch({ control, name: "groups" });
   const subgroupsSelected = useWatch({ control, name: "subgroups" });
   const datesSelected = useWatch({ control, name: "dates" });
+  const storeSelected = useWatch({ control, name: "storesIds" });
 
   const groups: Group[] =
-    opciones?.find((c: Category) => c.id === categorySelected)?.groups ?? [];
+    opciones?.categories.find((c: Category) => c.id === categorySelected)
+      ?.groups ?? [];
 
   const subgroups = groups
     .filter((g) => groupsSelected.includes(g.id))
@@ -59,6 +51,7 @@ export function useAnalisisFilterForm() {
       })),
     );
 
+  const stores = opciones?.stores ?? [];
   const [productSearch, setProductSearch] = useState("");
   const debouncedSearch = useDebounce(productSearch, 300);
 
@@ -82,6 +75,7 @@ export function useAnalisisFilterForm() {
       ...values,
       groups: normalizeAllToEmpty(values.groups, groups.length),
       subgroups: normalizeAllToEmpty(values.subgroups, subgroups.length),
+      storesIds: normalizeAllToEmpty(values.storesIds, stores.length),
     };
 
     toggleFilterPanel();
@@ -122,6 +116,10 @@ export function useAnalisisFilterForm() {
     setProductSearch(trimmed);
   };
 
+  const handleStoreChange = (stores: string[]) => {
+    setValue("storesIds", stores);
+  };
+
   return {
     // estado y helpers de datos
     opciones,
@@ -133,6 +131,7 @@ export function useAnalisisFilterForm() {
     subgroups,
     productos,
     isFetchingProductos,
+    stores,
     // react-hook-form
     control,
     setValue,
@@ -140,6 +139,7 @@ export function useAnalisisFilterForm() {
     categorySelected,
     groupsSelected,
     subgroupsSelected,
+    storeSelected,
     isValidForm,
     // handlers
     submit,
@@ -148,5 +148,6 @@ export function useAnalisisFilterForm() {
     handleGroupsChange,
     handleSubgroupsChange,
     handleProductSearchChange,
+    handleStoreChange,
   };
 }

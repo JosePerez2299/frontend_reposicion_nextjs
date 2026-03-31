@@ -8,10 +8,10 @@ export const useRotation = (enabled?: boolean) => {
     const filtersReq: RotationRequest = {
       ...filters,
       dates: {
-        start: filters.dates?.from ? new Date(filters.dates.from).toISOString().split('T')[0] + 'T00:00:00.000Z' : undefined,
-        end: filters.dates?.to ? new Date(filters.dates.to).toISOString().split('T')[0] + 'T00:00:00.000Z' : undefined,
+        from: new Date(filters.dates.from),
+        to: new Date(filters.dates.to),
       },
-      product_codes: filters.productIds,
+      productIds: filters.productIds,
     };
 
     return useRotationQuery(filtersReq, enabled);

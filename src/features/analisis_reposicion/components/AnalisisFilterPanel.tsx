@@ -32,18 +32,21 @@ export function AnalisisFilterPanel() {
     groups,
     subgroups,
     productos,
+    stores,
     isFetchingProductos,
     control,
     categorySelected,
     groupsSelected,
     subgroupsSelected,
     isValidForm,
+    storeSelected,
     submit,
     handleClear,
     handleCategoryChange,
     handleGroupsChange,
     handleSubgroupsChange,
     handleProductSearchChange,
+    handleStoreChange,
   } = useAnalisisFilterForm();
 
   if (isError)
@@ -82,6 +85,20 @@ export function AnalisisFilterPanel() {
         />
       </div>
 
+      {/* Tiendas */}
+      <div className="flex flex-col gap-1.5">
+        <Label className="text-xs text-muted-foreground">Tiendas</Label>
+        <Combobox
+          multi
+          options={opciones?.stores ?? []}
+          value={storeSelected}
+          onChange={handleStoreChange}
+          placeholder="Todas"
+          searchPlaceholder="Buscar tienda..."
+          className="w-[160px]"
+        />
+      </div>
+
       {/* Rango de fechas */}
       <div className="flex flex-col gap-1.5">
         <Label className="text-xs text-muted-foreground">Rango de fechas</Label>
@@ -105,7 +122,7 @@ export function AnalisisFilterPanel() {
       <div className="flex flex-col gap-1.5">
         <Label className="text-xs text-muted-foreground">Categoría</Label>
         <Combobox
-          options={opciones ?? []}
+          options={opciones?.categories ?? []}
           value={categorySelected}
           onChange={handleCategoryChange}
           placeholder="Todas"
