@@ -1,40 +1,6 @@
 import { create } from "zustand";
 import { DateRange } from "react-day-picker";
 
-type ViewMode = "compact" | "full";
-
-interface AnalisisStore {
-  // UI
-  viewMode: ViewMode;
-  filterPanelOpen: boolean;
-
-  // estado efectivo (source of truth)
-  filters: AnalisisFilters;
-
-  // paginación
-  page: number;
-
-  // acciones UI
-  setViewMode: (mode: ViewMode) => void;
-  toggleFilterPanel: () => void;
-  closeFilterPanel: () => void;
-  hasActiveFilters: () => boolean;
-
-  // acciones filtros
-  setFilters: (filters: AnalisisFilters) => void;
-  clearFilters: () => void;
-
-  // acciones paginación
-  setPage: (page: number) => void;
-}
-
-export interface AnalisisFilters {
-  dates: DateRange;
-  category: string;
-  groups: string[];
-  subgroups: string[];
-  productIds: string[];
-}
 
 export const INITIAL_FILTERS: AnalisisFilters = {
   dates: {

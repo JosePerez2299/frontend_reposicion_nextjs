@@ -1,8 +1,8 @@
 import { useAnalisisStore } from "@/stores/resposicion-analisis.store";
 import { AnalisisFilterPanel } from "./AnalisisFilterPanel";
-import TableSticky from "./AnalisisTable";
 import { AnalisisStatsCards } from "./AnalisisStatsCards";
 import { FilterX, Info } from "lucide-react";
+import { useRotation } from "../hooks/useRotation";
 
 const NoFiltersMessage = () => {
   return (
@@ -25,8 +25,18 @@ const NoFiltersMessage = () => {
   );
 };
 export const AnalisisView = () => {
-  const { hasActiveFilters, filterPanelOpen, filters } = useAnalisisStore();
-  console.log(filters);
+  const { hasActiveFilters, filterPanelOpen } = useAnalisisStore();
+
+  const { data, isLoading, isError } = useRotation(hasActiveFilters());
+
+  if (isLoading) {
+    return <div>Cargando...</div>;
+  }
+
+  if (isError) {
+    return <div>Error</div>;
+  }
+
   return (
     <div className="flex flex-col h-full">
       {/* Filtros */}
@@ -44,9 +54,7 @@ export const AnalisisView = () => {
           </div>
 
           {/* Tabla */}
-          <div className="flex-1 min-h-0">
-            {JSON.stringify(filters)}
-          </div>
+          <div className="flex-1 min-h-0">data: {JSON.stringify(data)}</div>
         </>
       ) : (
         <div className="flex-1 flex items-center justify-center">

@@ -8,7 +8,17 @@ import { normalizeAllToEmpty } from "@/lib/utils";
 import { useBuscarProductos } from "@/queries/productos.queries";
 import { useDebounce } from "@/hooks/use-debounce";
 import type { Category, Group } from "@/schemas/entities/product.schema";
-import type { AnalisisFilters } from "@/stores/resposicion-analisis.store";
+
+interface AnalisisFilters {
+  dates: {
+    from: Date | undefined;
+    to: Date | undefined;
+  };
+  category: string;
+  groups: string[];
+  subgroups: string[];
+  productIds: string[];
+}
 
 type FilterForm = AnalisisFilters;
 
