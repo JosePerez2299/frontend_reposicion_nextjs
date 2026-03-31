@@ -41,8 +41,8 @@ export const api = {
     return res.data
   },
 
-  async post<T>(endpoint: string, body: unknown): Promise<T> {
-    const res = await apiInstance.post<T>(endpoint, body)
+  async post<T>(endpoint: string, body: unknown, params?: Record<string, any>): Promise<T> {
+    const res = await apiInstance.post<T>(endpoint, body, { ...params })
     return res.data
   },
 

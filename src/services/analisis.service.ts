@@ -16,8 +16,17 @@ export async function fetchOpcionesFiltros(): Promise<FilterOptions> {
   });
 }
 
-export async function fetchRotation(filters: RotationRequest ): Promise<any> {
-  const data = await api.post("sales/rotation", filters);
+export async function fetchRotation(filters: RotationRequest, currentPage: number = 1, limit: number = 10 ): Promise<any> {
+
+  console.log("filters", filters);
+  console.log("currentPage", currentPage);
+  console.log("limit", limit);
+  const data = await api.post("sales/rotation", filters, {
+    params: {
+      current_page: currentPage,
+      limit,
+    },
+  });
   return data;
 }
 
