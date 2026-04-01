@@ -30,7 +30,7 @@ function StatCard({
 
 export function AnalisisStatsCards() {
   const { filters } = useAnalisisStore();
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
 
   const days_diff =
     filters.dates?.to && filters.dates?.from
