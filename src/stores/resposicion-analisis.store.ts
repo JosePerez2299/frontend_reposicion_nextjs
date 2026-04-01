@@ -35,8 +35,8 @@ export const INITIAL_FILTERS: AnalisisFilters = {
   category: "",
   groups: [],
   subgroups: [],
-  productIds: [],
-  storesIds: [],
+  product_codes: [],
+  store_ids: [],
 };
 
 export const useAnalisisStore = create<AnalisisStore>((set, get) => ({
@@ -58,7 +58,7 @@ export const useAnalisisStore = create<AnalisisStore>((set, get) => ({
   hasActiveFilters: () => {
     const { filters } = get();
     return (
-      filters.productIds.length > 0 ||
+      filters.product_codes.length > 0 ||
       (filters.dates.from !== undefined && filters.dates.to !== undefined) ||
       filters.category !== "" ||
       filters.groups.length > 0 ||

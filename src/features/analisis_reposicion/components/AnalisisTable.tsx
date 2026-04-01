@@ -1,16 +1,12 @@
-"use client";
+"use client"
 
-import { useEffect, useMemo, type CSSProperties } from "react";
+import { useMemo } from "react"
 import {
-  Column,
-  ColumnDef,
-  flexRender,
-  getCoreRowModel,
-  getPaginationRowModel,
   useReactTable,
-} from "@tanstack/react-table";
-
-import { Button } from "@/components/ui/button";
+  getCoreRowModel,
+  flexRender,
+  ColumnDef,
+} from "@tanstack/react-table"
 import {
   Table,
   TableBody,
@@ -18,287 +14,303 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "@/components/ui/table"
+import { Button } from "@/components/ui/button"
+import { useAnalisisStore } from "@/stores/resposicion-analisis.store"
 
-/* =========================
-   TYPES & MOCK DATA
-========================= */
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
 
-type Row = {
-  modelo: string;
-  [key: string]: string | number;
-};
-
-const STORE_COUNT = 20;
-const storeKeys = Array.from(
-  { length: STORE_COUNT },
-  (_, i) => `tienda${i + 1}`,
-);
-
-const data: Row[] = Array.from({ length: 50 }, (_, rowIndex) => ({
-  modelo: `Modelo ${rowIndex + 1}`,
-  ...Object.fromEntries(
-    storeKeys.map((key, i) => [key, (i + 1) * (rowIndex + 1)]),
-  ),
-}));
-
-/* =========================
-   STYLES (PINNING)
-========================= */
-
-const getCommonPinningStyles = (column: Column<Row>): CSSProperties => {
-  const isPinned = column.getIsPinned();
-  const isLastLeftPinnedColumn =
-    isPinned === "left" && column.getIsLastColumn("left");
-  const isFirstRightPinnedColumn =
-    isPinned === "right" && column.getIsFirstColumn("right");
-
-  return {
-    position: isPinned ? "sticky" : "relative",
-    left: isPinned === "left" ? `${column.getStart("left")}px` : undefined,
-    right: isPinned === "right" ? `${column.getAfter("right")}px` : undefined,
-    zIndex: isPinned ? 10 : 0,
-    background: isPinned ? "white" : undefined,
-    boxShadow: isLastLeftPinnedColumn
-      ? "-4px 0 4px -4px gray inset"
-      : isFirstRightPinnedColumn
-        ? "4px 0 4px -4px gray inset"
-        : undefined,
-    width: column.getSize(),
-  };
-};
-
-const getTotalRowCellStyles = (column: Column<Row>): CSSProperties => {
-  const base = getCommonPinningStyles(column);
-  const isPinned = column.getIsPinned();
-
-  return {
-    ...base,
-    position: "sticky",
-    bottom: 0,
-    background: "white",
-    zIndex: isPinned ? 30 : 20,
-    fontWeight: 600,
-  };
-};
-
-/* =========================
-   HOOK: TOTALS
-========================= */
-
-function useTableTotals(data: Row[]) {
-  const rowTotals = useMemo(() => {
-    return data.map((row) =>
-      storeKeys.reduce((sum, key) => sum + Number(row[key] ?? 0), 0),
-    );
-  }, [data]);
-
-  const storeTotals = useMemo(() => {
-    return storeKeys.map((key) =>
-      data.reduce((sum, row) => sum + Number(row[key] ?? 0), 0),
-    );
-  }, [data]);
-
-  const grandTotal = useMemo(() => {
-    return storeTotals.reduce((sum, value) => sum + value, 0);
-  }, [storeTotals]);
-
-  return { rowTotals, storeTotals, grandTotal };
+export interface StoreValue {
+  qty_sold: number
+  qty_stock: number
+  transactions: number
+  total_buy: number
+  rotation: number
 }
 
-/* =========================
-   COMPONENT: PAGINATION
-========================= */
+export interface AnalisisRow {
+  product_id: string
+  product_name: string
+  category_id: string
+  category_name: string
+  group_id: string
+  group_name: string
+  subgroup_id: string
+  subgroup_name: string
+  price: number
+  cost: number
+  values: Record<string, StoreValue>
+}
 
-function TablePagination({ table }: { table: ReturnType<typeof useReactTable<Row>> }) {
-  return (
-    <div className="flex items-center justify-between p-2 border-t bg-white">
-      <p className="text-sm text-muted-foreground">
-        Página{" "}
-        <span className="font-medium text-foreground">
-          {table.getState().pagination.pageIndex + 1}
-        </span>{" "}
-        de{" "}
-        <span className="font-medium text-foreground">
-          {table.getPageCount()}
+export interface StoreHeader {
+  id: string
+  name: string
+}
+
+export interface AnalisisResponse {
+  stores: StoreHeader[]
+  data: AnalisisRow[]
+  pagination: {
+    current_page: number
+    limit: number
+    total_count: number
+    total_pages: number
+    has_next: boolean
+    has_prev: boolean
+  }
+}
+
+// ---------------------------------------------------------------------------
+// TanStack Table meta augmentation
+// ---------------------------------------------------------------------------
+
+declare module "@tanstack/react-table" {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  interface ColumnMeta<TData, TValue> {
+    sticky?: boolean
+    /** pixel offset for multi-column sticky pinning */
+    stickyLeft?: number
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Column builders
+// ---------------------------------------------------------------------------
+
+const productColumns: ColumnDef<AnalisisRow>[] = [
+  {
+    accessorKey: "product_id",
+    header: "Código",
+    size: 160,
+    meta: { sticky: true, stickyLeft: 0 },
+  },
+  {
+    accessorKey: "product_name",
+    header: "Producto",
+    size: 240,
+    meta: { sticky: true, stickyLeft: 160 },
+  },
+  {
+    accessorKey: "category_name",
+    header: "Categoría",
+    size: 150,
+  },
+  {
+    accessorKey: "price",
+    header: () => <span className="block text-right">Precio</span>,
+    size: 90,
+    cell: ({ getValue }) => (
+      <span className="block text-right tabular-nums">
+        ${(getValue<number>()).toFixed(2)}
+      </span>
+    ),
+  },
+]
+
+function buildStoreColumns(stores: StoreHeader[]): ColumnDef<AnalisisRow>[] {
+  return stores.map((store) => ({
+    id: `store_${store.id}`,
+    header: () => (
+      <div className="text-center leading-tight">
+        <span className="block text-xs font-semibold truncate max-w-[120px]" title={store.name}>
+          {store.name}
         </span>
-      </p>
-
-      <div className="flex items-center gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-        >
-          Anterior
-        </Button>
-
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        >
-          Siguiente
-        </Button>
+        <span className="block text-[10px] text-muted-foreground font-normal">
+          {store.id}
+        </span>
       </div>
-    </div>
-  );
+    ),
+    size: 130,
+    cell: ({ row }) => {
+      const val = row.original.values[store.id]
+      if (!val) return <span className="block text-center text-muted-foreground">—</span>
+
+      const rotPct = (val.rotation * 100).toFixed(1)
+      const rotColor =
+        val.rotation >= 0.7
+          ? "text-emerald-600 dark:text-emerald-400"
+          : val.rotation >= 0.4
+          ? "text-amber-600 dark:text-amber-400"
+          : "text-muted-foreground"
+
+      return (
+        <div className="text-right tabular-nums text-xs space-y-0.5 py-0.5">
+          <div className="font-semibold text-foreground">{val.qty_sold.toLocaleString()}</div>
+          <div className="text-muted-foreground">stk: {val.qty_stock.toLocaleString()}</div>
+          <div className={rotColor}>rot: {rotPct}%</div>
+        </div>
+      )
+    },
+  }))
 }
 
-/* =========================
-   MAIN COMPONENT
-========================= */
+function buildColumns(stores: StoreHeader[]): ColumnDef<AnalisisRow>[] {
+  return [...productColumns, ...buildStoreColumns(stores)]
+}
 
-export default function TableSticky() {
-  const { rowTotals, storeTotals, grandTotal } = useTableTotals(data);
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
 
-  const columns = useMemo<ColumnDef<Row>[]>(
-    () => [
-      {
-        accessorKey: "modelo",
-        id: "modelo",
-        header: "Modelo",
-        size: 220,
-      },
-      ...storeKeys.map<ColumnDef<Row>>((storeKey, index) => ({
-        accessorKey: storeKey,
-        header: `Tienda ${index + 1}`,
-        size: 120,
-      })),
-      {
-        id: "total",
-        header: "Total",
-        size: 140,
-        cell: ({ row }) => {
-          const total = storeKeys.reduce((sum, key) => {
-            return sum + Number(row.original[key] ?? 0);
-          }, 0);
-          return total;
-        },
-        accessorFn: (row) =>
-          storeKeys.reduce((sum, key) => sum + Number(row[key] ?? 0), 0),
-      },
-    ],
-    [],
-  );
+interface AnalisisTableProps {
+  data: AnalisisResponse
+}
+
+export function AnalisisTable({ data }: AnalisisTableProps) {
+  const { page, setPage } = useAnalisisStore()
+
+  const columns = useMemo(() => buildColumns(data.stores), [data.stores])
 
   const table = useReactTable({
-    data,
+    data: data.data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    columnResizeMode: "onChange",
-    initialState: {
+    manualPagination: true,
+    pageCount: data.pagination.total_pages,
+    state: {
       pagination: {
-        pageSize: 20,
+        pageIndex: data.pagination.current_page - 1,
+        pageSize: data.pagination.limit,
       },
     },
-  });
+    onPaginationChange: (updater) => {
+      const next =
+        typeof updater === "function"
+          ? updater({
+              pageIndex: data.pagination.current_page - 1,
+              pageSize: data.pagination.limit,
+            })
+          : updater
+      setPage(next.pageIndex + 1)
+    },
+  })
 
-  useEffect(() => {
-    table.getColumn("modelo")?.pin("left");
-    table.getColumn("total")?.pin("right");
-  }, [table]);
-
-  const { pageIndex, pageSize } = table.getState().pagination;
+  const { current_page, total_pages, total_count, has_prev, has_next } =
+    data.pagination
 
   return (
-    <div className="flex flex-col h-full border rounded-md border-border">
-      {/* SCROLLABLE AREA */}
-      <div className="flex-1 overflow-auto">
-        <Table
-          style={{ width: table.getTotalSize() }}
-          className="border-separate border-spacing-0"
-        >
-          <TableHeader className="sticky top-0 z-20">
+    <div className="flex flex-col gap-3">
+      {/* ------------------------------------------------------------------ */}
+      {/* Table                                                               */}
+      {/* ------------------------------------------------------------------ */}
+      <div className="rounded-md border overflow-auto max-h-[600px]">
+        <Table style={{ minWidth: "max-content" }}>
+          <TableHeader className="sticky top-0 z-20 bg-background">
             {table.getHeaderGroups().map((hg) => (
               <TableRow key={hg.id}>
-                {hg.headers.map((header) => (
-                  <TableHead
-                    key={header.id}
-                    colSpan={header.colSpan}
-                    style={getCommonPinningStyles(header.column)}
-                    className="border border-border bg-muted text-xs font-medium"
-                  >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
-                  </TableHead>
-                ))}
+                {hg.headers.map((header) => {
+                  const meta = header.column.columnDef.meta
+                  return (
+                    <TableHead
+                      key={header.id}
+                      style={{
+                        width: header.getSize(),
+                        minWidth: header.getSize(),
+                        ...(meta?.sticky
+                          ? { left: meta.stickyLeft ?? 0 }
+                          : {}),
+                      }}
+                      className={
+                        meta?.sticky
+                          ? "sticky z-30 bg-background border-r shadow-[1px_0_0_0_hsl(var(--border))]"
+                          : ""
+                      }
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
+                  )
+                })}
               </TableRow>
             ))}
           </TableHeader>
 
           <TableBody>
-            {table.getRowModel().rows.map((row) => {
-              const absoluteIndex = row.index + pageIndex * pageSize;
-
-              return (
-                <TableRow key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell
-                      key={cell.id}
-                      style={getCommonPinningStyles(cell.column)}
-                      className="border border-border bg-white text-sm"
-                    >
-                      {cell.column.id === "modelo"
-                        ? flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext(),
-                          )
-                        : cell.column.id === "total"
-                          ? rowTotals[absoluteIndex]
-                          : flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext(),
-                            )}
-                    </TableCell>
-                  ))}
+            {table.getRowModel().rows.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center text-muted-foreground"
+                >
+                  Sin resultados.
+                </TableCell>
+              </TableRow>
+            ) : (
+              table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id} className="hover:bg-muted/50">
+                  {row.getVisibleCells().map((cell) => {
+                    const meta = cell.column.columnDef.meta
+                    return (
+                      <TableCell
+                        key={cell.id}
+                        style={{
+                          width: cell.column.getSize(),
+                          minWidth: cell.column.getSize(),
+                          ...(meta?.sticky
+                            ? { left: meta.stickyLeft ?? 0 }
+                            : {}),
+                        }}
+                        className={
+                          meta?.sticky
+                            ? "sticky z-10 bg-background border-r shadow-[1px_0_0_0_hsl(var(--border))]"
+                            : ""
+                        }
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    )
+                  })}
                 </TableRow>
-              );
-            })}
-
-            {/* TOTAL ROW */}
-            <TableRow>
-              <TableCell
-                style={getTotalRowCellStyles(table.getColumn("modelo")!)}
-                className="border border-border text-sm"
-              >
-                TOTAL
-              </TableCell>
-
-              {storeKeys.map((key, index) => {
-                const column = table.getColumn(key)!;
-
-                return (
-                  <TableCell
-                    key={key}
-                    style={getTotalRowCellStyles(column)}
-                    className="border border-border text-sm text-right"
-                  >
-                    {storeTotals[index]}
-                  </TableCell>
-                );
-              })}
-
-              <TableCell
-                style={getTotalRowCellStyles(table.getColumn("total")!)}
-                className="border border-border text-sm text-right"
-              >
-                {grandTotal}
-              </TableCell>
-            </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
 
-      {/* FIXED FOOTER */}
-      <TablePagination table={table} />
+      {/* ------------------------------------------------------------------ */}
+      {/* Pagination                                                          */}
+      {/* ------------------------------------------------------------------ */}
+      <div className="flex items-center justify-between px-1">
+        <p className="text-sm text-muted-foreground">
+          Página{" "}
+          <span className="font-medium text-foreground">{current_page}</span>{" "}
+          de{" "}
+          <span className="font-medium text-foreground">{total_pages}</span>
+          <span className="mx-2 text-border">·</span>
+          <span className="font-medium text-foreground">
+            {total_count.toLocaleString()}
+          </span>{" "}
+          productos
+        </p>
+
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={!has_prev}
+            onClick={() => table.previousPage()}
+          >
+            Anterior
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={!has_next}
+            onClick={() => table.nextPage()}
+          >
+            Siguiente
+          </Button>
+        </div>
+      </div>
     </div>
-  );
+  )
 }

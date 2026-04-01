@@ -3,6 +3,7 @@ import { AnalisisFilterPanel } from "./AnalisisFilterPanel";
 import { AnalisisStatsCards } from "./AnalisisStatsCards";
 import { FilterX, Info } from "lucide-react";
 import { useRotation } from "../hooks/useRotation";
+import { AnalisisTable } from "./AnalisisTable";
 
 const NoFiltersMessage = () => {
   return (
@@ -25,9 +26,9 @@ const NoFiltersMessage = () => {
   );
 };
 export const AnalisisView = () => {
-  const { hasActiveFilters, filterPanelOpen } = useAnalisisStore();
+  const { hasActiveFilters, page, filterPanelOpen } = useAnalisisStore();
 
-  const { data, isLoading, isError } = useRotation(hasActiveFilters());
+  const { data, isLoading, isError } = useRotation(hasActiveFilters(), page, 10);
 
   if (isLoading) {
     return <div>Cargando...</div>;
@@ -52,9 +53,8 @@ export const AnalisisView = () => {
           <div className="flex-none">
             <AnalisisStatsCards />
           </div>
-
           {/* Tabla */}
-          <div className="flex-1 min-h-0">data: {JSON.stringify(data)}</div>
+          <AnalisisTable data={data} />{" "}
         </>
       ) : (
         <div className="flex-1 flex items-center justify-center">

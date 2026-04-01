@@ -68,7 +68,7 @@ export function AnalisisFilterPanel() {
         <Label className="text-xs text-muted-foreground">Producto</Label>
         <Controller
           control={control}
-          name="productIds"
+          name="product_codes"
           render={({ field }) => (
             <ComboboxAsync
               multi

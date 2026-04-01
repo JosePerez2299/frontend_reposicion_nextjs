@@ -4,11 +4,13 @@ import { RotationRequest } from "@/schemas/api/analisis.schemas";
 
 export const useRotationQuery = (
   filters: RotationRequest,
+  page: number,
+  limit: number,
   enabled?: boolean,
 ) => {
   return useQuery({
-    queryKey: ["rotation", filters],
-    queryFn: () => fetchRotation(filters),
+    queryKey: ["rotation", filters, page, limit],
+    queryFn: () => fetchRotation(filters, page, limit),
     staleTime: 1000 * 60 * 5, // 5 minutes
     enabled:
       enabled !== undefined

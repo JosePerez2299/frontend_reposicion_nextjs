@@ -35,7 +35,7 @@ export function useAnalisisFilterForm() {
   const groupsSelected = useWatch({ control, name: "groups" });
   const subgroupsSelected = useWatch({ control, name: "subgroups" });
   const datesSelected = useWatch({ control, name: "dates" });
-  const storeSelected = useWatch({ control, name: "storesIds" });
+  const storeSelected = useWatch({ control, name: "store_ids" });
 
   const groups: Group[] =
     opciones?.categories.find((c: Category) => c.id === categorySelected)
@@ -75,7 +75,7 @@ export function useAnalisisFilterForm() {
       ...values,
       groups: normalizeAllToEmpty(values.groups, groups.length),
       subgroups: normalizeAllToEmpty(values.subgroups, subgroups.length),
-      storesIds: normalizeAllToEmpty(values.storesIds, stores.length),
+      store_ids: normalizeAllToEmpty(values.store_ids, stores.length),
     };
 
     toggleFilterPanel();
@@ -87,14 +87,14 @@ export function useAnalisisFilterForm() {
   };
 
   const handleCategoryChange = (val: string) => {
-    setValue("productIds", []);
+    setValue("product_codes", []);
     setValue("category", val);
     setValue("groups", []);
     setValue("subgroups", []);
   };
 
   const handleGroupsChange = (val: string[]) => {
-    setValue("productIds", []);
+    setValue("product_codes", []);
     setValue("groups", val);
     const validSubIds = groups
       .filter((g) => val.includes(g.id))
@@ -107,7 +107,7 @@ export function useAnalisisFilterForm() {
   };
 
   const handleSubgroupsChange = (val: string[]) => {
-    setValue("productIds", []);
+    setValue("product_codes", []);
     setValue("subgroups", val);
   };
 
@@ -117,7 +117,7 @@ export function useAnalisisFilterForm() {
   };
 
   const handleStoreChange = (stores: string[]) => {
-    setValue("storesIds", stores);
+    setValue("store_ids", stores);
   };
 
   return {

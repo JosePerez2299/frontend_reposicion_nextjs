@@ -2,7 +2,7 @@ import { useRotationQuery } from "../queries/sales.queries";
 import { RotationRequest } from "@/schemas/api/analisis.schemas";
 import { useAnalisisStore } from "@/stores/resposicion-analisis.store";
 
-export const useRotation = (enabled?: boolean) => {
+export const useRotation = (enabled?: boolean, page?: number, limit?: number) => {
   const { filters } = useAnalisisStore();
 
     const filtersReq: RotationRequest = {
@@ -11,8 +11,8 @@ export const useRotation = (enabled?: boolean) => {
         from: new Date(filters.dates.from),
         to: new Date(filters.dates.to),
       },
-      productIds: filters.productIds,
+      product_codes: filters.product_codes,
     };
 
-    return useRotationQuery(filtersReq, enabled);
+    return useRotationQuery(filtersReq, page || 1, limit || 10, enabled);
 };
