@@ -38,6 +38,7 @@ export interface StoreValue {
 }
 
 export interface AnalisisRow {
+  product_code: string;
   product_name: string;
   group_id: string;
   group_name: string;
@@ -91,6 +92,9 @@ const productColumns: ColumnDef<AnalisisRow>[] = [
               <TooltipContent>
                 <div className="space-y-1">
                   <p className="font-medium">{name}</p>
+                  <p className="text-sm text-muted-foreground">
+                    ID: {row.original.product_code}
+                  </p>
                   <p className="text-sm text-muted-foreground">
                     Precio: ${price.toFixed(2)}
                   </p>
@@ -152,10 +156,10 @@ function buildStoreColumns(stores: StoreHeader[]): ColumnDef<AnalisisRow>[] {
       const rotPct = (val.rotation * 100).toFixed(1);
       const rotColor =
         val.rotation >= 0.7
-          ? "text-emerald-600 dark:text-emerald-400"
+          ? "text-success dark:text-success-400"
           : val.rotation >= 0.4
-            ? "text-amber-600 dark:text-amber-400"
-            : "text-muted-foreground";
+            ? "text-warning dark:text-warning-400"
+            : "text-destructive dark:text-destructive-400";
 
       return (
         <div className="text-center tabular-nums text-xs space-y-0.5 py-0.5">

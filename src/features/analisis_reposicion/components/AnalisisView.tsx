@@ -32,9 +32,9 @@ const NoFiltersMessage = () => {
 export function SkeletonTable() {
   return (
     <div className="flex items-center justify-center h-full">
-     <div className="flex flex-col items-center gap-2">
+     <div className="flex flex-col items-center gap-2 justify-center">
       <Spinner className="size-8 text-primary " />
-      <p className="text-md text-primary font-bold">Cargando...</p>
+      <p className="text-lg  font-mono">Cargando...</p>
      </div>
     </div>
   )
@@ -46,7 +46,7 @@ export const AnalisisView = () => {
   const { data, isLoading, isError } = useRotation(
     filtersApplied,
     page,
-    20
+    10
   );
 
   if (isLoading) {
