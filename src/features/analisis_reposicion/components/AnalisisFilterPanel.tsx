@@ -12,7 +12,7 @@ import { useAnalisisFilterForm } from "../hooks/useAnalisisFilterForm";
 function FiltersSkeleton() {
   return (
     <div className="flex gap-3 p-3 border-b border-border">
-      {Array.from({ length: 5 }).map((_, i) => (
+      {Array.from({ length: 6 }).map((_, i) => (
         <div key={i} className="flex flex-col gap-1.5">
           <Skeleton className="h-3 w-16" />
           <Skeleton className="h-8 w-[160px]" />

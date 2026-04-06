@@ -4,6 +4,8 @@ import { AnalisisStatsCards } from "./AnalisisStatsCards";
 import { FilterX, Info } from "lucide-react";
 import { useRotation } from "../hooks/useRotation";
 import { AnalisisTable } from "./AnalisisTable";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
 
 const NoFiltersMessage = () => {
   return (
@@ -25,6 +27,19 @@ const NoFiltersMessage = () => {
     </div>
   );
 };
+
+
+export function SkeletonTable() {
+  return (
+    <div className="flex items-center justify-center h-full">
+     <div className="flex flex-col items-center gap-2">
+      <Spinner className="size-8 text-primary " />
+      <p className="text-md text-primary font-bold">Cargando...</p>
+     </div>
+    </div>
+  )
+}
+
 export const AnalisisView = () => {
   const { page, filterPanelOpen, filtersApplied } = useAnalisisStore();
 
@@ -35,7 +50,7 @@ export const AnalisisView = () => {
   );
 
   if (isLoading) {
-    return <div>Cargando...</div>;
+    return <SkeletonTable  />;
   }
 
   if (isError) {
