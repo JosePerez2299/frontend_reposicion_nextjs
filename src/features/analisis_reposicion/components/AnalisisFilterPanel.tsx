@@ -110,7 +110,10 @@ export function AnalisisFilterPanel() {
               value={field.value}
               minDate={minDate}
               maxDate={maxDate}
-              onChange={field.onChange}
+              onChange={(val) => {
+                handleClear();
+                field.onChange(val);
+              }}
               placeholder="Todas"
               className="w-[200px]"
             />

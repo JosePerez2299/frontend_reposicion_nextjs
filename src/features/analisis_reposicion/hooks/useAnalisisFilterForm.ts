@@ -15,7 +15,7 @@ type FilterForm = AnalisisFilters;
 const ONE_DAY = 24 * 60 * 60 * 1000;
 
 export function useAnalisisFilterForm() {
-  const { filters, setFilters, clearFilters, toggleFilterPanel } =
+  const { filters, setFilters, clearFilters, toggleFilterPanel, setFiltersApplied, resetFiltersApplied } =
     useAnalisisStore();
 
   const { data: opciones, isLoading, isError } = useOpcionesFiltros();
@@ -80,13 +80,16 @@ export function useAnalisisFilterForm() {
 
     toggleFilterPanel();
     setFilters(normalizedValues);
+    setFiltersApplied(true);
   });
 
   const handleClear = () => {
     clearFilters();
+    resetFiltersApplied();
   };
 
   const handleCategoryChange = (val: string) => {
+    resetFiltersApplied();
     setValue("product_codes", []);
     setValue("category", val);
     setValue("groups", []);
@@ -94,6 +97,7 @@ export function useAnalisisFilterForm() {
   };
 
   const handleGroupsChange = (val: string[]) => {
+    resetFiltersApplied();
     setValue("product_codes", []);
     setValue("groups", val);
     const validSubIds = groups
@@ -107,6 +111,7 @@ export function useAnalisisFilterForm() {
   };
 
   const handleSubgroupsChange = (val: string[]) => {
+    resetFiltersApplied();
     setValue("product_codes", []);
     setValue("subgroups", val);
   };
@@ -117,6 +122,7 @@ export function useAnalisisFilterForm() {
   };
 
   const handleStoreChange = (stores: string[]) => {
+    resetFiltersApplied();
     setValue("store_ids", stores);
   };
 

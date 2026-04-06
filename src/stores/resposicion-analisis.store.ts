@@ -8,6 +8,7 @@ interface AnalisisStore {
 
   // datos
   filters: AnalisisFilters;
+  filtersApplied: boolean;
 
   // paginación
   page: number;
@@ -21,6 +22,8 @@ interface AnalisisStore {
   // acciones filtros
   setFilters: (filters: AnalisisFilters) => void;
   clearFilters: () => void;
+  setFiltersApplied: (applied: boolean) => void;
+  resetFiltersApplied: () => void;
 
   // acciones paginación
   setPage: (page: number) => void;
@@ -46,6 +49,7 @@ export const useAnalisisStore = create<AnalisisStore>((set, get) => ({
 
   // datos
   filters: INITIAL_FILTERS,
+  filtersApplied: false,
 
   // paginación
   page: 1,
@@ -69,7 +73,9 @@ export const useAnalisisStore = create<AnalisisStore>((set, get) => ({
   // acciones filtros
   // Al aplicar nuevos filtros, resetea la página a 1
   setFilters: (filters) => set({ filters, page: 1 }),
-  clearFilters: () => set({ filters: INITIAL_FILTERS, page: 1 }),
+  clearFilters: () => set({ filters: INITIAL_FILTERS, page: 1, filtersApplied: false }),
+  setFiltersApplied: (applied) => set({ filtersApplied: applied }),
+  resetFiltersApplied: () => set({ filtersApplied: false }),
 
   // acciones paginación
   setPage: (page) => set({ page }),

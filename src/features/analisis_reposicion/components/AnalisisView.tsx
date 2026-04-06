@@ -26,9 +26,13 @@ const NoFiltersMessage = () => {
   );
 };
 export const AnalisisView = () => {
-  const { hasActiveFilters, page, filterPanelOpen } = useAnalisisStore();
+  const { page, filterPanelOpen, filtersApplied } = useAnalisisStore();
 
-  const { data, isLoading, isError } = useRotation(hasActiveFilters(), page, 10);
+  const { data, isLoading, isError } = useRotation(
+    filtersApplied,
+    page,
+    10,
+  );
 
   if (isLoading) {
     return <div>Cargando...</div>;
@@ -47,7 +51,7 @@ export const AnalisisView = () => {
         </div>
       )}
 
-      {hasActiveFilters() ? (
+      {filtersApplied && data ? (
         <>
           {/* Stats */}
           <div className="flex-none">

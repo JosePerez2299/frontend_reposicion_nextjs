@@ -67,7 +67,7 @@ export function AnalisisTopBar({ title, subtitle }: AnalisisTopBarProps) {
         <ToggleGroup
           type="single"
           value={viewMode}
-          onValueChange={(val) => val && setViewMode(val as "compact" | "full")}
+          onValueChange={(val) => val && setViewMode(val as "compact" | "detailed")}
           className="bg-muted rounded-md p-0.5 gap-0"
         >
           <ToggleGroupItem
@@ -79,12 +79,12 @@ export function AnalisisTopBar({ title, subtitle }: AnalisisTopBarProps) {
             Compacto
           </ToggleGroupItem>
           <ToggleGroupItem
-            value="full"
-            aria-label="Vista completa"
+            value="detailed"
+            aria-label="Vista detallada"
             className={TOGGLE_ITEM_CLASS}
           >
             <Table size={13} />
-            Completo
+            Detallado
           </ToggleGroupItem>
         </ToggleGroup>
       </div>
