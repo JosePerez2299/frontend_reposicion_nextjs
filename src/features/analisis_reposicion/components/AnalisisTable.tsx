@@ -1,12 +1,12 @@
-"use client"
+"use client";
 
-import { useMemo } from "react"
+import { useMemo } from "react";
 import {
   useReactTable,
   getCoreRowModel,
   flexRender,
   ColumnDef,
-} from "@tanstack/react-table"
+} from "@tanstack/react-table";
 import {
   Table,
   TableBody,
@@ -14,140 +14,166 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { useAnalisisStore } from "@/stores/resposicion-analisis.store"
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { useAnalisisStore } from "@/stores/resposicion-analisis.store";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Eye } from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
 export interface StoreValue {
-  qty_sold: number
-  qty_stock: number
-  transactions: number
-  total_buy: number
-  rotation: number
+  qty_sold: number;
+  qty_stock: number;
+  transactions: number;
+  total_buy: number;
+  rotation: number;
 }
 
 export interface AnalisisRow {
-  product_id: string
-  product_name: string
-  category_id: string
-  category_name: string
-  group_id: string
-  group_name: string
-  subgroup_id: string
-  subgroup_name: string
-  price: number
-  cost: number
-  values: Record<string, StoreValue>
+  product_name: string;
+  group_id: string;
+  group_name: string;
+  subgroup_id: string;
+  subgroup_name: string;
+  price: number;
+  cost: number;
+  values: Record<string, StoreValue>;
 }
 
 export interface StoreHeader {
-  id: string
-  name: string
+  id: string;
+  name: string;
 }
 
 export interface AnalisisResponse {
-  stores: StoreHeader[]
-  data: AnalisisRow[]
+  stores: StoreHeader[];
+  data: AnalisisRow[];
   pagination: {
-    current_page: number
-    limit: number
-    total_count: number
-    total_pages: number
-    has_next: boolean
-    has_prev: boolean
-  }
-}
-
-// ---------------------------------------------------------------------------
-// TanStack Table meta augmentation
-// ---------------------------------------------------------------------------
-
-declare module "@tanstack/react-table" {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  interface ColumnMeta<TData, TValue> {
-    sticky?: boolean
-    /** pixel offset for multi-column sticky pinning */
-    stickyLeft?: number
-  }
+    current_page: number;
+    limit: number;
+    total_count: number;
+    total_pages: number;
+    has_next: boolean;
+    has_prev: boolean;
+  };
 }
 
 // ---------------------------------------------------------------------------
 // Column builders
 // ---------------------------------------------------------------------------
-
 const productColumns: ColumnDef<AnalisisRow>[] = [
-  {
-    accessorKey: "product_id",
-    header: "Código",
-    size: 160,
-    meta: { sticky: true, stickyLeft: 0 },
-  },
   {
     accessorKey: "product_name",
     header: "Producto",
-    size: 240,
-    meta: { sticky: true, stickyLeft: 160 },
-  },
-  {
-    accessorKey: "category_name",
-    header: "Categoría",
-    size: 150,
+    size: 200,
+    minSize: 200,
+    maxSize: 200,
+    cell: ({ row, getValue }) => {
+      const name = getValue<string>();
+      const price = row.original.price;
+      return (
+        <div>
+          <TooltipProvider delayDuration={900}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="block truncate w-[180px] text-ellipsis text-sm font-mono font-semibold">
+                  {name}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                <div className="space-y-1">
+                  <p className="font-medium">{name}</p>
+                  <p className="text-sm text-muted-foreground">
+                    Precio: ${price.toFixed(2)}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Costo: ${row.original.cost.toFixed(2)}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Margen: ${(price - row.original.cost).toFixed(2)}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Colección: {row.original.group_name}
+                  </p>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      );
+    },
   },
   {
     accessorKey: "price",
     header: () => <span className="block text-right">Precio</span>,
-    size: 90,
+    size: 80,
+    minSize: 80,
+    maxSize: 80,
     cell: ({ getValue }) => (
       <span className="block text-right tabular-nums">
-        ${(getValue<number>()).toFixed(2)}
+        ${getValue<number>().toFixed(2)}
       </span>
     ),
   },
-]
+];
 
 function buildStoreColumns(stores: StoreHeader[]): ColumnDef<AnalisisRow>[] {
-  return stores.map((store) => ({
+  return (stores ?? []).map((store) => ({
     id: `store_${store.id}`,
     header: () => (
       <div className="text-center leading-tight">
-        <span className="block text-xs font-semibold truncate max-w-[120px]" title={store.name}>
+        <div
+          className="text-xs font-semibold truncate mx-auto max-w-[120px]"
+          title={store.name}
+        >
           {store.name}
-        </span>
-        <span className="block text-[10px] text-muted-foreground font-normal">
+        </div>
+        <div className="text-[10px] text-muted-foreground font-normal">
           {store.id}
-        </span>
+        </div>
       </div>
     ),
     size: 130,
     cell: ({ row }) => {
-      const val = row.original.values[store.id]
-      if (!val) return <span className="block text-center text-muted-foreground">—</span>
+      const val = row.original.values[store.id];
+      if (!val)
+        return (
+          <span className="block text-center text-muted-foreground">—</span>
+        );
 
-      const rotPct = (val.rotation * 100).toFixed(1)
+      const rotPct = (val.rotation * 100).toFixed(1);
       const rotColor =
         val.rotation >= 0.7
           ? "text-emerald-600 dark:text-emerald-400"
           : val.rotation >= 0.4
-          ? "text-amber-600 dark:text-amber-400"
-          : "text-muted-foreground"
+            ? "text-amber-600 dark:text-amber-400"
+            : "text-muted-foreground";
 
       return (
-        <div className="text-right tabular-nums text-xs space-y-0.5 py-0.5">
-          <div className="font-semibold text-foreground">{val.qty_sold.toLocaleString()}</div>
-          <div className="text-muted-foreground">stk: {val.qty_stock.toLocaleString()}</div>
+        <div className="text-center tabular-nums text-xs space-y-0.5 py-0.5">
+          <div className="font-semibold text-foreground">
+            {val.qty_sold.toLocaleString()}
+          </div>
+          <div className="text-muted-foreground">
+            stk: {val.qty_stock.toLocaleString()}
+          </div>
           <div className={rotColor}>rot: {rotPct}%</div>
         </div>
-      )
+      );
     },
-  }))
+  }));
 }
 
 function buildColumns(stores: StoreHeader[]): ColumnDef<AnalisisRow>[] {
-  return [...productColumns, ...buildStoreColumns(stores)]
+  return [...productColumns, ...buildStoreColumns(stores)];
 }
 
 // ---------------------------------------------------------------------------
@@ -155,18 +181,24 @@ function buildColumns(stores: StoreHeader[]): ColumnDef<AnalisisRow>[] {
 // ---------------------------------------------------------------------------
 
 interface AnalisisTableProps {
-  data: AnalisisResponse
+  data: AnalisisResponse;
 }
 
 export function AnalisisTable({ data }: AnalisisTableProps) {
-  const { page, setPage } = useAnalisisStore()
+  const { setPage } = useAnalisisStore();
 
-  const columns = useMemo(() => buildColumns(data.stores), [data.stores])
+  const columns = useMemo(() => buildColumns(data.stores ?? []), [data.stores]);
 
   const table = useReactTable({
-    data: data.data,
+    data: data.data ?? [],
     columns,
     getCoreRowModel: getCoreRowModel(),
+    enableColumnPinning: true,
+    initialState: {
+      columnPinning: {
+        left: ["product_name"],
+      },
+    },
     manualPagination: true,
     pageCount: data.pagination.total_pages,
     state: {
@@ -182,13 +214,13 @@ export function AnalisisTable({ data }: AnalisisTableProps) {
               pageIndex: data.pagination.current_page - 1,
               pageSize: data.pagination.limit,
             })
-          : updater
-      setPage(next.pageIndex + 1)
+          : updater;
+      setPage(next.pageIndex + 1);
     },
-  })
+  });
 
   const { current_page, total_pages, total_count, has_prev, has_next } =
-    data.pagination
+    data.pagination;
 
   return (
     <div className="flex flex-col gap-3">
@@ -196,25 +228,30 @@ export function AnalisisTable({ data }: AnalisisTableProps) {
       {/* Table                                                               */}
       {/* ------------------------------------------------------------------ */}
       <div className="rounded-md border overflow-auto max-h-[600px]">
-        <Table style={{ minWidth: "max-content" }}>
+        <Table
+          containerClassName="overflow-visible"
+          className="w-auto min-w-full"
+        >
           <TableHeader className="sticky top-0 z-20 bg-background">
             {table.getHeaderGroups().map((hg) => (
               <TableRow key={hg.id}>
                 {hg.headers.map((header) => {
-                  const meta = header.column.columnDef.meta
+                  const isPinned = header.column.getIsPinned();
                   return (
                     <TableHead
                       key={header.id}
                       style={{
                         width: header.getSize(),
                         minWidth: header.getSize(),
-                        ...(meta?.sticky
-                          ? { left: meta.stickyLeft ?? 0 }
-                          : {}),
+                        maxWidth: header.getSize(),
+                        left:
+                          isPinned === "left"
+                            ? `${header.column.getStart("left")}px`
+                            : undefined,
                       }}
                       className={
-                        meta?.sticky
-                          ? "sticky z-30 bg-background border-r shadow-[1px_0_0_0_hsl(var(--border))]"
+                        isPinned === "left"
+                          ? "sticky z-30 bg-background border-r shadow-[1px_0_0_0_hsl(var(--border))] "
                           : ""
                       }
                     >
@@ -222,10 +259,10 @@ export function AnalisisTable({ data }: AnalisisTableProps) {
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </TableHead>
-                  )
+                  );
                 })}
               </TableRow>
             ))}
@@ -245,29 +282,36 @@ export function AnalisisTable({ data }: AnalisisTableProps) {
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id} className="hover:bg-muted/50">
                   {row.getVisibleCells().map((cell) => {
-                    const meta = cell.column.columnDef.meta
+                    const isPinned = cell.column.getIsPinned();
                     return (
                       <TableCell
                         key={cell.id}
                         style={{
                           width: cell.column.getSize(),
                           minWidth: cell.column.getSize(),
-                          ...(meta?.sticky
-                            ? { left: meta.stickyLeft ?? 0 }
-                            : {}),
+                          maxWidth: cell.column.getSize(),
+                          left:
+                            isPinned === "left"
+                              ? `${cell.column.getStart("left")}px`
+                              : undefined,
                         }}
                         className={
-                          meta?.sticky
-                            ? "sticky z-10 bg-background border-r shadow-[1px_0_0_0_hsl(var(--border))]"
+                          isPinned === "left"
+                            ? "sticky z-10 bg-primary/10 border-r shadow-[1px_0_0_0_hsl(var(--border))] cursor-pointer backdrop-blur-md"
                             : ""
                         }
+                        onClick={() => {
+                          if (isPinned === "left") {
+                            alert(`Columna fijada clickeada: ${cell.getValue()}`);
+                          }
+                        }}
                       >
                         {flexRender(
                           cell.column.columnDef.cell,
-                          cell.getContext()
+                          cell.getContext(),
                         )}
                       </TableCell>
-                    )
+                    );
                   })}
                 </TableRow>
               ))
@@ -282,8 +326,7 @@ export function AnalisisTable({ data }: AnalisisTableProps) {
       <div className="flex items-center justify-between px-1">
         <p className="text-sm text-muted-foreground">
           Página{" "}
-          <span className="font-medium text-foreground">{current_page}</span>{" "}
-          de{" "}
+          <span className="font-medium text-foreground">{current_page}</span> de{" "}
           <span className="font-medium text-foreground">{total_pages}</span>
           <span className="mx-2 text-border">·</span>
           <span className="font-medium text-foreground">
@@ -312,5 +355,5 @@ export function AnalisisTable({ data }: AnalisisTableProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

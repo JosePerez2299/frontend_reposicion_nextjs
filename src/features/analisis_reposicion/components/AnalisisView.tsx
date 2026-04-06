@@ -31,7 +31,7 @@ export const AnalisisView = () => {
   const { data, isLoading, isError } = useRotation(
     filtersApplied,
     page,
-    10,
+    20
   );
 
   if (isLoading) {
@@ -58,7 +58,9 @@ export const AnalisisView = () => {
             <AnalisisStatsCards />
           </div>
           {/* Tabla */}
-          <AnalisisTable data={data} />{" "}
+          <div className="flex-1 min-h-0">
+            <AnalisisTable data={data} />
+          </div>
         </>
       ) : (
         <div className="flex-1 flex items-center justify-center">

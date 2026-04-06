@@ -1,4 +1,5 @@
 import axios, { AxiosError, AxiosInstance } from 'axios'
+import qs from 'qs'
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api/v1'
 
@@ -18,6 +19,13 @@ const apiInstance: AxiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  paramsSerializer: (params) => {
+    // Filtra params undefined/null y serializa arrays como param=v1&param=v2
+    const clean = Object.fromEntries(
+      Object.entries(params).filter(([, v]) => v !== undefined && v !== null)
+    )
+    return qs.stringify(clean, { arrayFormat: 'repeat' })
+  },
 })
 
 apiInstance.interceptors.response.use(
@@ -30,7 +38,6 @@ apiInstance.interceptors.response.use(
         `Error ${error.response.status}`
       )
     }
-
     throw new ApiError(500, null, 'Network Error')
   }
 )
@@ -42,7 +49,7 @@ export const api = {
   },
 
   async post<T>(endpoint: string, body: unknown, params?: Record<string, any>): Promise<T> {
-    const res = await apiInstance.post<T>(endpoint, body, { ...params })
+    const res = await apiInstance.post<T>(endpoint, body, { params })
     return res.data
   },
 
