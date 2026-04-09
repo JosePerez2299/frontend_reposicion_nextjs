@@ -23,7 +23,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { getRotationStyle, getStockCellClass, getCompleteLegendConfig } from "@/lib/utils";
+import { StoreValueCell } from "@/features/analisis_reposicion/components/StoreValueCell";
+import { getCompleteLegendConfig } from "@/lib/utils";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -66,15 +67,6 @@ export interface AnalisisResponse {
     has_prev: boolean;
   };
 }
-
-// ---------------------------------------------------------------------------
-// Color helpers — matching sole-v5 palette
-// ---------------------------------------------------------------------------
-
-/**
- * Returns Tailwind bg + text classes based on rotation value (0–1).
- * Mirrors --s-r/--t-r … --s-g/--t-g from the reference design.
- */
 
 // ---------------------------------------------------------------------------
 // Column builders
@@ -156,10 +148,7 @@ function buildStoreColumns(
     ),
     size: viewMode === "detailed" ? 170 : 100,
     minSize: viewMode === "detailed" ? 170 : 100,
-
-    // Return the bg color as metadata so TableCell can consume it
     meta: { isCellColored: true },
-
     cell: ({ row }) => {
       const val = row.original.values[store.id];
       if (!val)
@@ -167,73 +156,20 @@ function buildStoreColumns(
           <span className="block text-center text-[#bbb] font-mono text-[11px]">—</span>
         );
 
-      const rotationColors = getRotationStyle(val.rotation);
-      const stockBgClass = getStockCellClass(val.qty_stock);
-      const pct = (val.rotation * 100).toFixed(1);
-
       return (
-        <TooltipProvider delayDuration={500}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              {/* full-bleed inner — parent TableCell is p-0 */}
-              <div
-                className={`h-full w-full flex items-center justify-center cursor-help ${stockBgClass} transition-[filter] duration-100 hover:brightness-95`}
-              >
-                {viewMode === "detailed" ? (
-                  <div className="grid grid-cols-3 w-full">
-                    <div className={`text-center font-mono font-bold text-[12px] ${rotationColors.textClass}`}>
-                      {pct}%
-                    </div>
-                    <div className="text-center font-mono text-[11px] text-[#9c9790] border-l border-[#e8e6e2]">
-                      {val.qty_stock.toLocaleString()}
-                    </div>
-                    <div className="text-center font-mono font-semibold text-[12px] text-[#1c1a17] border-l border-[#e8e6e2]">
-                      {val.qty_sold.toLocaleString()}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center">
-                    <span className={`font-mono font-bold text-[15px] leading-none block ${rotationColors.textClass}`}>
-                      {pct}%
-                    </span>
-                    <span className="font-mono text-[9px] text-[#9c9790] mt-0.5 block">
-                      {val.qty_stock}u
-                    </span>
-                  </div>
-                )}
-              </div>
-            </TooltipTrigger>
-            <TooltipContent className="max-w-xs">
-              <div className="space-y-2">
-                <div className="font-semibold text-sm border-b pb-1">
-                  {row.original.product_name} — {store.name}
-                </div>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                  <div><span className="font-medium">Rotación:</span></div>
-                  <div className={`font-bold ${rotationColors.textClass}`}>{pct}%</div>
-                  <div><span className="font-medium">Stock:</span></div>
-                  <div className="text-muted-foreground">{val.qty_stock.toLocaleString()}</div>
-                  <div><span className="font-medium">Ventas:</span></div>
-                  <div className="font-semibold">{val.qty_sold.toLocaleString()}</div>
-                  <div><span className="font-medium">Transacciones:</span></div>
-                  <div className="text-muted-foreground">{val.transactions.toLocaleString()}</div>
-                  <div><span className="font-medium">Total compras:</span></div>
-                  <div className="font-semibold">${val.total_buy.toLocaleString()}</div>
-                </div>
-              </div>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <StoreValueCell
+          viewMode={viewMode}
+          productName={row.original.product_name}
+          storeName={store.name}
+          qty_stock={val.qty_stock}
+          qty_sold={val.qty_sold}
+          transactions={val.transactions}
+          total_buy={val.total_buy}
+          rotation={val.rotation}
+        />
       );
     },
   }));
-}
-
-function buildColumns(
-  stores: StoreHeader[],
-  viewMode: "compact" | "detailed"
-): ColumnDef<AnalisisRow>[] {
-  return [...productColumns, ...buildStoreColumns(stores, viewMode)];
 }
 
 // ---------------------------------------------------------------------------
@@ -248,7 +184,7 @@ export function AnalisisTable({ data }: AnalisisTableProps) {
   const { viewMode, setPage } = useAnalisisStore();
 
   const columns = useMemo(
-    () => buildColumns(data.stores ?? [], viewMode),
+    () => [...productColumns, ...buildStoreColumns(data.stores ?? [], viewMode)],
     [data.stores, viewMode]
   );
 
@@ -285,12 +221,8 @@ export function AnalisisTable({ data }: AnalisisTableProps) {
 
   return (
     <div className="flex flex-col gap-3">
-      {/* ------------------------------------------------------------------ */}
-      {/* Table                                                               */}
-      {/* ------------------------------------------------------------------ */}
       <div className="rounded-md border border-border overflow-auto max-h-[600px] bg-background">
         <Table containerClassName="overflow-visible" className="w-auto min-w-full border-collapse">
-          {/* HEADER */}
           <TableHeader className="sticky top-0 z-20 bg-muted/80 supports-[backdrop-filter]:bg-muted/60 backdrop-blur">
             {table.getHeaderGroups().map((hg) => (
               <TableRow key={hg.id} className="border-b border-border">
@@ -303,10 +235,7 @@ export function AnalisisTable({ data }: AnalisisTableProps) {
                         width: header.getSize(),
                         minWidth: header.getSize(),
                         maxWidth: header.getSize(),
-                        left:
-                          isPinned === "left"
-                            ? `${header.column.getStart("left")}px`
-                            : undefined,
+                        left: isPinned === "left" ? `${header.column.getStart("left")}px` : undefined,
                       }}
                       className={[
                         "py-2 text-[10px] font-semibold tracking-widest uppercase text-muted-foreground",
@@ -325,7 +254,6 @@ export function AnalisisTable({ data }: AnalisisTableProps) {
             ))}
           </TableHeader>
 
-          {/* BODY */}
           <TableBody>
             {table.getRowModel().rows.length === 0 ? (
               <TableRow>
@@ -340,13 +268,12 @@ export function AnalisisTable({ data }: AnalisisTableProps) {
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  className="border-b border-[#e8e6e2] hover:bg-[#f2f1ee]/50 group"
+                  className="border-b border-[#e8e6e2] hover:bg-[#f2f1ee]/50"
                   style={{ height: 52 }}
                 >
                   {row.getVisibleCells().map((cell) => {
                     const isPinned = cell.column.getIsPinned();
-                    // Store cells are full-bleed — remove all padding so the colored div fills them
-                    const isStoreCel = cell.column.id.startsWith("store_");
+                    const isStoreCell = cell.column.id.startsWith("store_");
 
                     return (
                       <TableCell
@@ -355,15 +282,11 @@ export function AnalisisTable({ data }: AnalisisTableProps) {
                           width: cell.column.getSize(),
                           minWidth: cell.column.getSize(),
                           maxWidth: cell.column.getSize(),
-                          left:
-                            isPinned === "left"
-                              ? `${cell.column.getStart("left")}px`
-                              : undefined,
-                          // no padding for store cells — inner div fills the whole cell
-                          padding: isStoreCel ? 0 : undefined,
+                          left: isPinned === "left" ? `${cell.column.getStart("left")}px` : undefined,
+                          padding: isStoreCell ? 0 : undefined,
                         }}
                         className={[
-                          isStoreCel ? "h-[52px]" : "py-0",
+                          isStoreCell ? "h-[52px]" : "py-0",
                           isPinned === "left"
                             ? "sticky z-10 bg-white border-r-2 border-[#d0cdc8] shadow-[1px_0_0_0_#d0cdc8] cursor-pointer"
                             : "border-r border-[#e8e6e2]/60",
@@ -385,9 +308,6 @@ export function AnalisisTable({ data }: AnalisisTableProps) {
         </Table>
       </div>
 
-      {/* ------------------------------------------------------------------ */}
-      {/* Legend                                                              */}
-      {/* ------------------------------------------------------------------ */}
       <div className="px-1">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
           {getCompleteLegendConfig().map((section) => (
@@ -408,9 +328,6 @@ export function AnalisisTable({ data }: AnalisisTableProps) {
         </div>
       </div>
 
-      {/* ------------------------------------------------------------------ */}
-      {/* Pagination                                                          */}
-      {/* ------------------------------------------------------------------ */}
       <div className="flex items-center justify-between px-1">
         <p className="text-xs text-[#9c9790] font-mono">
           Página{" "}
@@ -420,7 +337,6 @@ export function AnalisisTable({ data }: AnalisisTableProps) {
           <span className="font-bold text-[#1c1a17]">{total_count.toLocaleString()}</span>{" "}
           productos
         </p>
-
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" disabled={!has_prev} onClick={() => table.previousPage()}>
             Anterior
