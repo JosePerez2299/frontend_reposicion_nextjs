@@ -8,6 +8,7 @@ import {
   SidebarSeparator,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { navigation } from "@/config/navigation";
 import { NavSection } from "./NavSection";
 
@@ -28,8 +29,13 @@ export function AppSidebar() {
             </span>
           </div>
 
-          {/* trigger — SIEMPRE visible */}
-          <SidebarTrigger className="flex-shrink-0" />
+          {/* trigger + theme toggle — trigger SIEMPRE visible, theme toggle solo cuando está expandido */}
+          <div className="flex items-center gap-1">
+            <div className="group-data-[collapsible=icon]:hidden">
+              <ThemeToggle />
+            </div>
+            <SidebarTrigger className="flex-shrink-0" />
+          </div>
         </div>
       </SidebarHeader>
 

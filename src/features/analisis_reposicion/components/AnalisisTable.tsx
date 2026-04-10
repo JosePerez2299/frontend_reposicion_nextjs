@@ -90,7 +90,7 @@ const productColumns: ColumnDef<AnalisisRow>[] = [
                 <span className="block truncate w-[172px] text-[13px] font-bold leading-snug font-mono">
                   {name}
                 </span>
-                <span className="font-mono text-[9px] text-[#9c9790] mt-0.5 tracking-wide">
+                <span className="font-mono text-[9px] text-muted-foreground mt-0.5 tracking-wide">
                   {row.original.product_code}
                 </span>
               </div>
@@ -119,7 +119,7 @@ const productColumns: ColumnDef<AnalisisRow>[] = [
     minSize: 80,
     maxSize: 80,
     cell: ({ getValue }) => (
-      <span className="block text-right pr-3 font-mono text-[12px] tabular-nums text-[#5c5852]">
+      <span className="block text-right pr-3 font-mono text-[12px] tabular-nums text-foreground">
         ${getValue<number>().toFixed(2)}
       </span>
     ),
@@ -140,20 +140,21 @@ function buildStoreColumns(
         {viewMode === "detailed" && (
           <div className="grid grid-cols-3 text-[9px] font-semibold text-muted-foreground border-t border-border pt-1 mt-1">
             <div>Rot.</div>
-            <div className="border-l border-[#e8e6e2]">Stock</div>
-            <div className="border-l border-[#e8e6e2]">Vtas</div>
+            <div className="border-l border-border">Stock</div>
+            <div className="border-l border-border">Vtas</div>
           </div>
         )}
       </div>
     ),
     size: viewMode === "detailed" ? 170 : 100,
     minSize: viewMode === "detailed" ? 170 : 100,
+    maxSize: viewMode === "detailed" ? 170 : 100,
     meta: { isCellColored: true },
     cell: ({ row }) => {
       const val = row.original.values[store.id];
       if (!val)
         return (
-          <span className="block text-center text-[#bbb] font-mono text-[11px]">—</span>
+          <span className="block text-center text-muted-foreground font-mono text-[11px]">—</span>
         );
 
       return (
@@ -259,7 +260,7 @@ export function AnalisisTable({ data }: AnalisisTableProps) {
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-24 text-center text-[#9c9790] font-mono text-xs"
+                  className="h-24 text-center text-muted-foreground font-mono text-xs"
                 >
                   Sin resultados.
                 </TableCell>
@@ -268,7 +269,7 @@ export function AnalisisTable({ data }: AnalisisTableProps) {
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  className="border-b border-[#e8e6e2] hover:bg-[#f2f1ee]/50"
+                  className="border-b border-border hover:bg-muted/50"
                   style={{ height: 52 }}
                 >
                   {row.getVisibleCells().map((cell) => {
@@ -288,8 +289,8 @@ export function AnalisisTable({ data }: AnalisisTableProps) {
                         className={[
                           isStoreCell ? "h-[52px]" : "py-0",
                           isPinned === "left"
-                            ? "sticky z-10 bg-white border-r-2 border-[#d0cdc8] shadow-[1px_0_0_0_#d0cdc8] cursor-pointer"
-                            : "border-r border-[#e8e6e2]/60",
+                            ? "sticky z-10 bg-background border-r-2 border-border shadow-[1px_0_0_0_var(--border)] cursor-pointer"
+                            : "border-r border-border/60",
                         ].join(" ")}
                         onClick={() => {
                           if (isPinned === "left") {
@@ -312,7 +313,7 @@ export function AnalisisTable({ data }: AnalisisTableProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
           {getCompleteLegendConfig().map((section) => (
             <div key={section.type} className="flex items-start gap-3">
-              <div className="shrink-0 text-[10px] font-semibold text-[#9c9790] uppercase tracking-wider pt-[1px]">
+              <div className="shrink-0 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider pt-[1px]">
                 {section.title}
               </div>
               <div className="flex items-center gap-3 flex-wrap">
@@ -329,12 +330,12 @@ export function AnalisisTable({ data }: AnalisisTableProps) {
       </div>
 
       <div className="flex items-center justify-between px-1">
-        <p className="text-xs text-[#9c9790] font-mono">
+        <p className="text-xs text-muted-foreground font-mono">
           Página{" "}
-          <span className="font-bold text-[#1c1a17]">{current_page}</span> de{" "}
-          <span className="font-bold text-[#1c1a17]">{total_pages}</span>
-          <span className="mx-2 text-[#d0cdc8]">·</span>
-          <span className="font-bold text-[#1c1a17]">{total_count.toLocaleString()}</span>{" "}
+          <span className="font-bold text-foreground">{current_page}</span> de{" "}
+          <span className="font-bold text-foreground">{total_pages}</span>
+          <span className="mx-2 text-border">·</span>
+          <span className="font-bold text-foreground">{total_count.toLocaleString()}</span>{" "}
           productos
         </p>
         <div className="flex items-center gap-2">
