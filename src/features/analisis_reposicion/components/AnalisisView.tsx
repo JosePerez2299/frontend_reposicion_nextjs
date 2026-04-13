@@ -13,7 +13,7 @@ export const AnalisisView = () => {
   const { data, isLoading, isError } = useRotation(
     filtersApplied,
     page,
-    10
+    12
   );
 
   if (isLoading) {
@@ -25,7 +25,7 @@ export const AnalisisView = () => {
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full min-h-0 overflow-hidden">
       {/* Filtros */}
       {filterPanelOpen && (
         <div className="flex-none">
@@ -39,8 +39,8 @@ export const AnalisisView = () => {
           <div className="flex-none">
             <AnalisisStatsCards />
           </div>
-          {/* Tabla */}
-          <div className="flex-1 min-h-0">
+          {/* Tabla — ocupa todo el espacio restante, scrolleable internamente */}
+          <div className="flex-1 min-h-0 overflow-hidden px-4 pb-4">
             <AnalisisTable data={data} />
           </div>
         </>

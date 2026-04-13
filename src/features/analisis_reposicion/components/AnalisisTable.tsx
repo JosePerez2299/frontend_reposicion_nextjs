@@ -86,8 +86,8 @@ const productColumns: ColumnDef<AnalisisRow>[] = [
         <TooltipProvider delayDuration={900}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="px-4 py-0 flex flex-col justify-center h-full cursor-default">
-                <span className="block truncate w-[172px] text-[11px] font-bold leading-snug font-mono">
+              <div className="px-4 py-0 flex flex-col justify-center h-full cursor-default min-w-0">
+                <span className="block truncate text-[12px] font-bold leading-snug font-mono">
                   {name}
                 </span>
                 <span className="font-mono text-[9px] text-muted-foreground mt-0.5 tracking-wide">
@@ -221,8 +221,8 @@ export function AnalisisTable({ data }: AnalisisTableProps) {
     data.pagination;
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="rounded-md border border-border overflow-auto max-h-[600px] bg-background">
+    <div className="flex flex-col h-full min-h-0">
+      <div className="flex-1 min-h-0 overflow-auto rounded-md border border-border bg-background">
         <Table containerClassName="overflow-visible" className="w-auto min-w-full border-collapse">
           <TableHeader className="sticky top-0 z-20 bg-muted/80 supports-[backdrop-filter]:bg-muted/60 backdrop-blur">
             {table.getHeaderGroups().map((hg) => (
@@ -309,7 +309,8 @@ export function AnalisisTable({ data }: AnalisisTableProps) {
         </Table>
       </div>
 
-      <div className="px-1">
+      {/* Leyendas — fijas abajo, no scrolleables */}
+      <div className="flex-none px-1 pt-2">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
           {getCompleteLegendConfig().map((section) => (
             <div key={section.type} className="flex items-start gap-3">
@@ -329,7 +330,8 @@ export function AnalisisTable({ data }: AnalisisTableProps) {
         </div>
       </div>
 
-      <div className="flex items-center justify-between px-1">
+      {/* Paginación — fija abajo */}
+      <div className="flex-none flex items-center justify-between px-1 py-2">
         <p className="text-xs text-muted-foreground font-mono">
           Página{" "}
           <span className="font-bold text-foreground">{current_page}</span> de{" "}

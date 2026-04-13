@@ -2,9 +2,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function SkeletonTable() {
   return (
-    <div className="flex flex-col gap-3 h-full">
-      {/* Skeleton de la tabla */}
-      <div className="rounded-md border border-border overflow-auto max-h-[600px] bg-background">
+    <div className="flex flex-col h-full min-h-0 overflow-hidden">
+      {/* Skeleton de la tabla — ocupa todo el espacio, scrolleable */}
+      <div className="flex-1 min-h-0 overflow-auto rounded-md border border-border bg-background">
         <div className="w-auto min-w-full">
           {/* Header skeleton */}
           <div className="sticky top-0 z-20 bg-muted/80 border-b border-border">
@@ -35,7 +35,7 @@ export function SkeletonTable() {
 
           {/* Body skeleton - filas simuladas */}
           <div className="divide-y divide-border">
-            {[...Array(10)].map((_, rowIndex) => (
+            {[...Array(12)].map((_, rowIndex) => (
               <div key={rowIndex} className="flex" style={{ height: '52px' }}>
                 {/* Columna Producto */}
                 <div className="w-[200px] min-w-[200px] max-w-[200px] py-0 px-4 border-r border-border flex flex-col justify-center">
@@ -61,8 +61,8 @@ export function SkeletonTable() {
         </div>
       </div>
 
-      {/* Skeleton de la leyenda */}
-      <div className="px-1">
+      {/* Skeleton de la leyenda — fijo abajo */}
+      <div className="flex-none px-1 pt-2">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
           {[...Array(4)].map((_, i) => (
             <div key={i} className="flex items-start gap-3">
@@ -80,8 +80,8 @@ export function SkeletonTable() {
         </div>
       </div>
 
-      {/* Skeleton de la paginación */}
-      <div className="flex items-center justify-between px-1">
+      {/* Skeleton de la paginación — fijo abajo */}
+      <div className="flex-none flex items-center justify-between px-1 py-2">
         <div className="flex items-center gap-2">
           <Skeleton className="h-4 w-24" />
           <Skeleton className="h-4 w-2" />
