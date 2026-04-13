@@ -8,6 +8,7 @@ import {
   Download,
   TrendingUp,
   Home,
+  User,
 } from "lucide-react";
 import { NavSection } from "@/types/navigation.types";
 
@@ -21,7 +22,15 @@ export const navigation: NavSection[] = [
         href: "/",
         icon: Home,
         badge: null,
-        roles: [RolesEnum.Reposicion, RolesEnum.Admin],
+        roles: [RolesEnum.Reposicion, RolesEnum.Admin, RolesEnum.Pedidos, RolesEnum.Almacen],
+      },
+      {
+        id: "perfil",
+        label: "Perfil",
+        href: "/perfil",
+        icon: User,
+        badge: null,
+        roles: [RolesEnum.Reposicion, RolesEnum.Admin, RolesEnum.Pedidos, RolesEnum.Almacen],
       },
     ],
   },

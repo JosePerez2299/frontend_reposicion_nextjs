@@ -1,7 +1,7 @@
 import { api } from "@/config/api";
 import {
   LoginRequestSchema,
-  MeResponseSchema,
+  RefreshTokenSchema,
   RegisterRequestSchema,
   TokenResponseSchema,
   UserResponseSchema,
@@ -23,11 +23,15 @@ export async function registerApi(data: RegisterRequest) {
 }
 
 export async function getMeApi() {
-  const raw = await api.get("/auth/me");
-  return MeResponseSchema.parse(raw);
+  const raw = await api.get<Record<string, unknown>>("/auth/me");
+  // Backend returns the user object directly, not wrapped in { user: ... }
+  return UserResponseSchema.parse(raw);
 }
 
-export async function getUserProfile() {
-  const raw = await api.get("/auth/me");
-  return UserResponseSchema.parse(raw.user);
+export async function refreshTokenApi(data: { refresh_token: string }) {
+  const raw = await api.post(
+    "/auth/refresh",
+    RefreshTokenSchema.parse(data),
+  );
+  return TokenResponseSchema.parse(raw);
 }

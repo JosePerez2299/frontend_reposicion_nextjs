@@ -20,20 +20,34 @@ export type RegisterRequest = z.infer<typeof RegisterRequestSchema>;
 
 export const TokenResponseSchema = z.object({
   access_token: z.string(),
+  refresh_token: z.string(),
   token_type: z.string().default("bearer"),
 });
 
-export const UserResponseSchema = z.object({
-  id: z.string(),
-  nombre: z.string(),
-  email: z.string().email(),
-  role: z.nativeEnum(RolesEnum),
+export const RefreshTokenSchema = z.object({
+  refresh_token: z.string(),
 });
 
-export const MeResponseSchema = z.object({
-  user: UserResponseSchema,
-});
+// Backend user response — transform to frontend User shape
+export const UserResponseSchema = z
+  .object({
+    id: z.union([z.string(), z.number()]).transform(String),
+    email: z.string().email(),
+    first_name: z.string().nullable(),
+    last_name: z.string().nullable(),
+    phone: z.string().nullable(),
+    is_active: z.boolean(),
+    role: z.string(),
+    created_at: z.string().nullable(),
+  })
+  .transform((raw) => ({
+    id: raw.id,
+    nombre: [raw.first_name, raw.last_name]
+      .filter(Boolean)
+      .join(" ")
+      .trim() || raw.email.split("@")[0],
+    email: raw.email,
+    role: raw.role as RolesEnum,
+  }));
 
-export type TokenResponse = z.infer<typeof TokenResponseSchema>;
 export type UserResponse = z.infer<typeof UserResponseSchema>;
-export type MeResponse = z.infer<typeof MeResponseSchema>;

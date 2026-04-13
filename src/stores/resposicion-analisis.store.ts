@@ -27,6 +27,7 @@ interface AnalisisStore {
 
   // acciones paginación
   setPage: (page: number) => void;
+  reset: () => void;
 }
 
 
@@ -79,4 +80,12 @@ export const useAnalisisStore = create<AnalisisStore>((set, get) => ({
 
   // acciones paginación
   setPage: (page) => set({ page }),
+  reset: () =>
+    set({
+      viewMode: "compact",
+      filterPanelOpen: true,
+      filters: INITIAL_FILTERS,
+      filtersApplied: false,
+      page: 1,
+    }),
 }));

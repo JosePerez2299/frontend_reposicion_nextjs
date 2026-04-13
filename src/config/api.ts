@@ -1,9 +1,10 @@
 import axios, { AxiosError, AxiosInstance } from 'axios'
+import Cookies from 'js-cookie'
 import qs from 'qs'
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api/v1'
 
-class ApiError extends Error {
+export class ApiError extends Error {
   constructor(
     public status: number,
     public data: unknown,
@@ -12,15 +13,34 @@ class ApiError extends Error {
     super(message)
     this.name = 'ApiError'
   }
+
+  /** Extract detail from response data if available */
+  static fromResponse(status: number, data: unknown): ApiError {
+    let message = `Error ${status}`
+
+    if (data && typeof data === 'object') {
+      const body = data as Record<string, unknown>
+      const detail = body.detail ?? body.message ?? body.error ?? body.msg
+      if (typeof detail === 'string' && detail) {
+        message = detail
+      }
+    }
+
+    return new ApiError(status, data, message)
+  }
 }
 
+// ── Raw instance (no interceptors) for refresh token calls ──────
+const rawInstance: AxiosInstance = axios.create({
+  baseURL: BASE_URL,
+  headers: { 'Content-Type': 'application/json' },
+})
+
+// ── Main instance ────────────────────────────────────────────────
 const apiInstance: AxiosInstance = axios.create({
   baseURL: BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  headers: { 'Content-Type': 'application/json' },
   paramsSerializer: (params) => {
-    // Filtra params undefined/null y serializa arrays como param=v1&param=v2
     const clean = Object.fromEntries(
       Object.entries(params).filter(([, v]) => v !== undefined && v !== null)
     )
@@ -28,17 +48,94 @@ const apiInstance: AxiosInstance = axios.create({
   },
 })
 
+// ── Request interceptor: inject access token ─────────────────────
+apiInstance.interceptors.request.use(
+  (config) => {
+    const token = Cookies.get('auth_token')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+  },
+  (error) => Promise.reject(error)
+)
+
+// ── Response interceptor: auto-refresh on 401 ────────────────────
+let isRefreshing = false
+type FailedRequest = {
+  resolve: (token: string) => void
+  reject: (error: unknown) => void
+}
+let failedQueue: FailedRequest[] = []
+
+const processQueue = (error: unknown | null, token: string | null) => {
+  for (const req of failedQueue) {
+    if (error) req.reject(error)
+    else if (token) req.resolve(token)
+  }
+  failedQueue = []
+}
+
 apiInstance.interceptors.response.use(
   (response) => response,
-  (error: AxiosError) => {
-    if (error.response) {
-      throw new ApiError(
-        error.response.status,
-        error.response.data,
-        `Error ${error.response.status}`
-      )
+  async (error: AxiosError) => {
+    const originalRequest = error.config as AxiosError['config'] & { _retry?: boolean }
+
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+      // Don't retry on auth endpoints themselves
+      const url = originalRequest.url ?? ''
+      if (url.includes('/auth/login') || url.includes('/auth/refresh') || url.includes('/auth/register')) {
+        throw ApiError.fromResponse(error.response.status, error.response.data)
+      }
+
+      originalRequest._retry = true
+
+      if (isRefreshing) {
+        // Another request is already refreshing — queue this one
+        return new Promise((resolve, reject) => {
+          failedQueue.push({
+            resolve: (token: string) => {
+              originalRequest!.headers!.Authorization = `Bearer ${token}`
+              resolve(apiInstance(originalRequest))
+            },
+            reject,
+          })
+        })
+      }
+
+      isRefreshing = true
+
+      try {
+        const refreshToken = Cookies.get('refresh_token')
+        if (!refreshToken) throw new Error('No refresh token')
+
+        const res = await rawInstance.post('/auth/refresh', { refresh_token: refreshToken })
+        const { access_token, refresh_token: newRefresh } = res.data
+
+        // Update cookies
+        Cookies.set('auth_token', access_token, { expires: 7 })
+        if (newRefresh) Cookies.set('refresh_token', newRefresh, { expires: 7 })
+
+        processQueue(null, access_token)
+        originalRequest.headers!.Authorization = `Bearer ${access_token}`
+
+        return apiInstance(originalRequest)
+      } catch (refreshError) {
+        processQueue(refreshError, null)
+        // Clear auth cookies — user must re-login
+        Cookies.remove('auth_token')
+        Cookies.remove('refresh_token')
+        Cookies.remove('auth_user')
+        throw ApiError.fromResponse(401, { detail: 'Sesión expirada. Inicia sesión nuevamente.' })
+      } finally {
+        isRefreshing = false
+      }
     }
-    throw new ApiError(500, null, 'Network Error')
+
+    if (error.response) {
+      throw ApiError.fromResponse(error.response.status, error.response.data)
+    }
+    throw new ApiError(500, null, 'Error de conexión. Verifica tu red.')
   }
 )
 
