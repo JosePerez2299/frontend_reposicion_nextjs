@@ -40,53 +40,59 @@ export function AnalisisTopBar({ title, subtitle }: AnalisisTopBarProps) {
 
   return (
     <Topbar title={title} subtitle={subtitle}>
-      <div className="flex items-center gap-2">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleClickFilter}
-              className={cn(
-                "h-7 gap-1.5 text-xs",
-                filterPanelOpen &&
-                  "bg-primary text-primary-foreground border-primary hover:bg-primary/90 hover:text-primary-foreground",
+      <div className="flex items-center">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center bg-muted rounded-md border border-border">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleClickFilter}
+                  className={cn(
+                    TOGGLE_ITEM_CLASS,
+                    filterPanelOpen &&
+                      "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground",
+                  )}
+                >
+                  <ListFilter size={13} />
+                  Filtrar
+                </Button>
+              </TooltipTrigger>
+              {!hasApplied && (
+                <TooltipContent>
+                  <p>No hay filtros aplicados</p>
+                </TooltipContent>
               )}
-            >
-              <ListFilter size={13} />
-              Filtrar
-            </Button>
-          </TooltipTrigger>
-          {!hasApplied && (
-            <TooltipContent>
-              <p>No hay filtros aplicados</p>
-            </TooltipContent>
-          )}
-        </Tooltip>
+            </Tooltip>
+          </div>
 
-        <ToggleGroup
-          type="single"
-          value={viewMode}
-          onValueChange={(val) => val && setViewMode(val as "compact" | "detailed")}
-          className="bg-muted rounded-md p-0.5 gap-0"
-        >
-          <ToggleGroupItem
-            value="compact"
-            aria-label="Vista compacta"
-            className={TOGGLE_ITEM_CLASS}
-          >
-            <LayoutGrid size={13} />
-            Compacto
-          </ToggleGroupItem>
-          <ToggleGroupItem
-            value="detailed"
-            aria-label="Vista detallada"
-            className={TOGGLE_ITEM_CLASS}
-          >
-            <Table size={13} />
-            Detallado
-          </ToggleGroupItem>
-        </ToggleGroup>
+          <div className="flex items-center bg-muted rounded-md border border-border">
+            <ToggleGroup
+              type="single"
+              value={viewMode}
+              onValueChange={(val) => val && setViewMode(val as "compact" | "detailed")}
+              className="gap-0"
+            >
+              <ToggleGroupItem
+                value="compact"
+                aria-label="Vista compacta"
+                className={TOGGLE_ITEM_CLASS}
+              >
+                <LayoutGrid size={13} />
+                Compacto
+              </ToggleGroupItem>
+              <ToggleGroupItem
+                value="detailed"
+                aria-label="Vista detallada"
+                className={TOGGLE_ITEM_CLASS}
+              >
+                <Table size={13} />
+                Detallado
+              </ToggleGroupItem>
+            </ToggleGroup>
+          </div>
+        </div>
       </div>
     </Topbar>
   );

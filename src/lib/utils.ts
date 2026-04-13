@@ -123,3 +123,11 @@ export function getCompleteLegendConfig() {
   ];
 }
 
+/** Returns CSS class for stock indicator dot based on quantity */
+export function getStockIndicatorClass(qty_stock: number): string {
+  if (qty_stock < 1) return "bg-[var(--stock-none-border)]";
+  if (qty_stock < 10) return "bg-[var(--stock-low-border)]";
+  if (qty_stock < 50) return "bg-[var(--stock-medium-border)]";
+  return "bg-[var(--stock-high-border)]";
+}
+

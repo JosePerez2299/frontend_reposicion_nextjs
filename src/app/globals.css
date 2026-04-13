@@ -60,22 +60,26 @@
   /* ── stock levels ── */
   --stock-none-bg: #fef2f2;
   --stock-none-text: #dc2626;
-  --stock-none-border: #fecaca;
+  --stock-none-border: #ef4444;
   --stock-low-bg: #ffedd5;
   --stock-low-text: #c2410c;
-  --stock-low-border: #fed7aa;
+  --stock-low-border: #f97316;
   --stock-medium-bg: #fefce8;
   --stock-medium-text: #ca8a04;
-  --stock-medium-border: #fde047;
+  --stock-medium-border: #eab308;
   --stock-high-bg: #f0fdf4;
   --stock-high-text: #16a34a;
-  --stock-high-border: #bbf7d0;
+  --stock-high-border: #22c55e;
 
   /* ── rotation levels ── */
   --rotation-critical-text: #dc2626;
   --rotation-high-text: #ea580c;
   --rotation-medium-text: #ca8a04;
   --rotation-good-text: #16a34a;
+
+  /* ── columna producto ── */
+  --product-column-bg: #f8fafc;
+  --product-column-border: #e2e8f0;
 }
 
 .dark {
@@ -115,25 +119,30 @@
   --surface-2: #1e293b;
   --surface-3: #334155;
 
-  /* stock none — rojo menos saturado, texto más brillante */
+  /* stock none — rojo intenso para indicador */
   --stock-none-bg:     #2d0c0c;
   --stock-none-text:   #ff8080;
-  --stock-none-border: #5c1a1a;
+  --stock-none-border: #ef4444;
 
-  /* stock low — naranja apagado, texto cálido */
+  /* stock low — naranja vibrante para indicador */
   --stock-low-bg:      #2d1500;
   --stock-low-text:    #ffb347;
-  --stock-low-border:  #7a3500;
+  --stock-low-border:  #f97316;
 
-  /* stock medium — amarillo más limpio */
+  /* stock medium — amarillo brillante para indicador */
   --stock-medium-bg:     #2a1f00;
   --stock-medium-text:   #ffe033;
-  --stock-medium-border: #6b4f00;
+  --stock-medium-border: #eab308;
 
-  /* stock high — verde más legible */
+  /* stock high — verde intenso para indicador */
   --stock-high-bg:     #072318;
   --stock-high-text:   #4ade80;
-  --stock-high-border: #0f4d2e;
+  --stock-high-border: #22c55e;
+
+  /* -- columna producto -- tema oscuro -- */
+  --product-column-bg: #0f172a;
+  --product-column-border: #334155;
+
   /* ── rotation levels — tema oscuro ── */
   --rotation-critical-text: #f87171;
   --rotation-high-text: #fb923c;
@@ -207,6 +216,8 @@
   --color-rotation-high-text: var(--rotation-high-text);
   --color-rotation-medium-text: var(--rotation-medium-text);
   --color-rotation-good-text: var(--rotation-good-text);
+  --color-product-column-bg: var(--product-column-bg);
+  --color-product-column-border: var(--product-column-border);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);

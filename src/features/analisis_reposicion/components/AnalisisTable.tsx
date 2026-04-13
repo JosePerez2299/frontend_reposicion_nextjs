@@ -87,7 +87,7 @@ const productColumns: ColumnDef<AnalisisRow>[] = [
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="px-4 py-0 flex flex-col justify-center h-full cursor-default">
-                <span className="block truncate w-[172px] text-[13px] font-bold leading-snug font-mono">
+                <span className="block truncate w-[172px] text-[11px] font-bold leading-snug font-mono">
                   {name}
                 </span>
                 <span className="font-mono text-[9px] text-muted-foreground mt-0.5 tracking-wide">
@@ -241,7 +241,7 @@ export function AnalisisTable({ data }: AnalisisTableProps) {
                       className={[
                         "py-2 text-[10px] font-semibold tracking-widest uppercase text-muted-foreground",
                         isPinned === "left"
-                          ? "sticky z-30 bg-muted/80 supports-[backdrop-filter]:bg-muted/60 border-r border-border"
+                          ? "sticky z-30 bg-muted border-r border-border"
                           : "border-r border-border",
                       ].join(" ")}
                     >
@@ -289,7 +289,7 @@ export function AnalisisTable({ data }: AnalisisTableProps) {
                         className={[
                           isStoreCell ? "h-[52px]" : "py-0",
                           isPinned === "left"
-                            ? "sticky z-10 bg-background border-r-2 border-border shadow-[1px_0_0_0_var(--border)] cursor-pointer"
+                            ? "sticky z-10 bg-[var(--product-column-bg)] border-r-2 border-[var(--product-column-border)] shadow-[1px_0_0_0_var(--product-column-border)] cursor-pointer"
                             : "border-r border-border/60",
                         ].join(" ")}
                         onClick={() => {

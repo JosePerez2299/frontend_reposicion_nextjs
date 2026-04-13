@@ -7,14 +7,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { StoreCellSheet } from "./StoreCellSheet";
 import { Plus } from "lucide-react";
-import { getRotationStyle, getStockCellClass } from "@/lib/utils";
+import { getRotationStyle, getStockIndicatorClass } from "@/lib/utils";
 
 type Props = {
   viewMode: "compact" | "detailed";
@@ -41,7 +36,7 @@ export function StoreValueCell({
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const rotationColors = getRotationStyle(rotation);
-  const stockBgClass = getStockCellClass(qty_stock);
+  const stockIndicatorClass = getStockIndicatorClass(qty_stock);
   const pct = (rotation * 100).toFixed(1);
 
   const handleOpenDialog = (e: React.MouseEvent) => {
@@ -55,7 +50,7 @@ export function StoreValueCell({
       <Tooltip open={tooltipOpen} onOpenChange={setTooltipOpen}>
         <TooltipTrigger asChild>
           <div
-            className={`relative group/storecell h-full w-full flex items-center justify-center cursor-help ${stockBgClass} transition-[filter] duration-100 hover:brightness-95`}
+            className="relative group/storecell h-full w-full flex items-center justify-center cursor-help bg-background transition-[filter] duration-100 hover:brightness-95"
           >
             <button
               type="button"
@@ -72,7 +67,8 @@ export function StoreValueCell({
                 <div className={`text-center font-mono font-bold text-[12px] ${rotationColors.textClass}`}>
                   {pct}%
                 </div>
-                <div className="text-center font-mono text-[11px] text-muted-foreground border-l border-border">
+                <div className="text-center font-mono text-[11px] text-muted-foreground border-l border-border relative">
+                  <div className={`absolute left-1 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full ${stockIndicatorClass}`} />
                   {qty_stock.toLocaleString()}
                 </div>
                 <div className="text-center font-mono font-semibold text-[12px] text-foreground border-l border-border">
@@ -81,9 +77,12 @@ export function StoreValueCell({
               </div>
             ) : (
               <div className="text-center">
-                <span className={`font-mono font-bold text-[15px] leading-none block ${rotationColors.textClass}`}>
-                  {pct}%
-                </span>
+                <div className="flex items-center justify-center gap-1">
+                  <div className={`w-1.5 h-1.5 rounded-full ${stockIndicatorClass}`} />
+                  <span className={`font-mono font-bold text-[15px] leading-none ${rotationColors.textClass}`}>
+                    {pct}%
+                  </span>
+                </div>
                 <span className="font-mono text-[9px] text-muted-foreground mt-0.5 block">
                   {qty_stock}u
                 </span>
@@ -113,25 +112,18 @@ export function StoreValueCell({
         </TooltipContent>
       </Tooltip>
       
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-lg [&>[data-state=open]]:duration-0 [&>[data-state=closed]]:duration-0">
-          <DialogHeader>
-            <DialogTitle>Detalle</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-2 text-sm">
-            <div className="font-medium">{productName}</div>
-            <div className="text-muted-foreground">Tienda: {storeName}</div>
-            <div className="grid grid-cols-2 gap-x-6 gap-y-1">
-              <div className="text-muted-foreground">Rotación</div>
-              <div className={`font-semibold ${rotationColors.textClass}`}>{pct}%</div>
-              <div className="text-muted-foreground">Stock</div>
-              <div className="font-semibold">{qty_stock.toLocaleString()}</div>
-              <div className="text-muted-foreground">Ventas</div>
-              <div className="font-semibold">{qty_sold.toLocaleString()}</div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <StoreCellSheet 
+        open={dialogOpen} 
+        onOpenChange={setDialogOpen}
+        data={{
+          product_name: productName,
+          store_name: storeName,
+          rotation_pct: pct,
+          rotation_text_class: rotationColors.textClass,
+          qty_stock,
+          qty_sold
+        }}
+      />
     </TooltipProvider>
   );
 }
