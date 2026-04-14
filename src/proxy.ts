@@ -7,6 +7,7 @@ const PROTECTED_PATHS = [
   "/reposicion",
   "/desarrollo",
   "/perfil",
+  
 ];
 
 const AUTH_PATHS = ["/login", "/register"];

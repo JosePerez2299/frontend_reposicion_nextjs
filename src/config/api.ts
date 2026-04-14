@@ -1,6 +1,7 @@
 import axios, { AxiosError, AxiosInstance } from 'axios'
 import Cookies from 'js-cookie'
 import qs from 'qs'
+import { useAuthStore } from '@/stores/auth.store'
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api/v1'
 
@@ -116,6 +117,12 @@ apiInstance.interceptors.response.use(
         Cookies.set('auth_token', access_token, { expires: 7 })
         if (newRefresh) Cookies.set('refresh_token', newRefresh, { expires: 7 })
 
+        // Keep Zustand store in sync (used by UI like session-expiry warning)
+        const currentRefresh = newRefresh ?? Cookies.get('refresh_token')
+        if (currentRefresh) {
+          useAuthStore.getState().setTokens(access_token, currentRefresh)
+        }
+
         processQueue(null, access_token)
         originalRequest.headers!.Authorization = `Bearer ${access_token}`
 
@@ -126,6 +133,7 @@ apiInstance.interceptors.response.use(
         Cookies.remove('auth_token')
         Cookies.remove('refresh_token')
         Cookies.remove('auth_user')
+        useAuthStore.getState().logout()
         throw ApiError.fromResponse(401, { detail: 'Sesión expirada. Inicia sesión nuevamente.' })
       } finally {
         isRefreshing = false

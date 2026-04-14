@@ -1,8 +1,10 @@
-"use client";
 
 import {
   Sheet,
+  SheetClose,
   SheetContent,
+  SheetDescription,
+  SheetFooter,
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
@@ -26,73 +28,34 @@ type Props = {
 };
 
 export function StoreCellSheet({ open, onOpenChange, data }: Props) {
+ 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
+       
       <SheetContent>
         <SheetHeader>
-          <SheetTitle>Detalles del Producto</SheetTitle>
+          <SheetTitle>Edit profile</SheetTitle>
+          <SheetDescription>
+            Make changes to your profile here. Click save when you&apos;re done.
+          </SheetDescription>
         </SheetHeader>
-        
-        {data && (
-          <div className="space-y-6">
-            {/* Información del producto */}
-            <div className="space-y-2 text-sm">
-              <div className="font-medium text-base">{data.product_name}</div>
-              <div className="text-muted-foreground">Tienda: {data.store_name}</div>
-              <div className="grid grid-cols-2 gap-x-6 gap-y-1">
-                <div className="text-muted-foreground">Rotación</div>
-                <div className={`font-semibold ${data.rotation_text_class}`}>{data.rotation_pct}%</div>
-                <div className="text-muted-foreground">Stock</div>
-                <div className="font-semibold">{data.qty_stock.toLocaleString()}</div>
-                <div className="text-muted-foreground">Ventas</div>
-                <div className="font-semibold">{data.qty_sold.toLocaleString()}</div>
-              </div>
-            </div>
-
-            {/* Formulario dummy */}
-            <div className="space-y-4">
-              <div className="text-sm font-medium">Ajustar Inventario</div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="stock-adjust">Ajuste de Stock</Label>
-                <Input 
-                  id="stock-adjust" 
-                  type="number" 
-                  placeholder="Ingrese cantidad"
-                  defaultValue="0"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="reason">Motivo</Label>
-                <Input 
-                  id="reason" 
-                  type="text" 
-                  placeholder="Especifique el motivo del ajuste"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="notes">Notas adicionales</Label>
-                <Input 
-                  id="notes" 
-                  type="text" 
-                  placeholder="Notas opcionales"
-                />
-              </div>
-              
-              <div className="flex gap-2 pt-4">
-                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                  Cancelar
-                </Button>
-                <Button type="button">
-                  Aplicar Cambios
-                </Button>
-              </div>
-            </div>
+        <div className="grid flex-1 auto-rows-min gap-6 px-4">
+          <div className="grid gap-3">
+            <Label htmlFor="sheet-demo-name">Name</Label>
+            <Input id="sheet-demo-name" defaultValue="Pedro Duarte" />
           </div>
-        )}
+          <div className="grid gap-3">
+            <Label htmlFor="sheet-demo-username">Username</Label>
+            <Input id="sheet-demo-username" defaultValue="@peduarte" />
+          </div>
+        </div>
+        <SheetFooter>
+          <Button type="submit">Save changes</Button>
+          <SheetClose asChild>
+            <Button variant="outline">Close</Button>
+          </SheetClose>
+        </SheetFooter>
       </SheetContent>
     </Sheet>
-  );
+  )
 }
