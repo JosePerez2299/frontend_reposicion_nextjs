@@ -8,6 +8,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { StoreCellSheet } from "./StoreCellSheet";
+import { StoreCellModal } from "./StoreCellModal";
 import { Plus } from "lucide-react";
 import { getRotationStyle, getStockIndicatorClass } from "@/lib/utils";
 
@@ -34,6 +35,7 @@ export function StoreValueCell({
 }: Props) {
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
 
   const rotationColors = getRotationStyle(rotation);
   const stockIndicatorClass = getStockIndicatorClass(qty_stock);
@@ -42,7 +44,14 @@ export function StoreValueCell({
   const handleOpenDialog = (e: React.MouseEvent) => {
     e.stopPropagation();
     setTooltipOpen(false);
+    setModalOpen(false);
     setDialogOpen(true);
+  };
+
+  const handleOpenModal = () => {
+    setTooltipOpen(false);
+    setDialogOpen(false);
+    setModalOpen(true);
   };
 
   return (
@@ -51,6 +60,7 @@ export function StoreValueCell({
         <TooltipTrigger asChild>
           <div
             className="relative group/storecell h-full w-full flex items-center justify-center cursor-help bg-background transition-[filter] duration-100 hover:brightness-95"
+            onClick={handleOpenModal}
           >
             <button
               type="button"
@@ -122,6 +132,21 @@ export function StoreValueCell({
           rotation_text_class: rotationColors.textClass,
           qty_stock,
           qty_sold
+        }}
+      />
+
+      <StoreCellModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        data={{
+          product_name: productName,
+          store_name: storeName,
+          rotation_pct: pct,
+          rotation_text_class: rotationColors.textClass,
+          qty_stock,
+          qty_sold,
+          transactions,
+          total_buy,
         }}
       />
     </TooltipProvider>
