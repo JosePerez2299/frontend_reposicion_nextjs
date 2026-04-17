@@ -1,4 +1,17 @@
-export type OrderStatus = "pending" | "approved" | "rejected" | "cancelled" | "completed" | string;
+export enum OrderStatus {
+  PENDING = "pending",
+  NOT_APPROVED = "not_approved",
+  APPROVED = "approved",
+  REJECTED = "rejected",
+  CANCELLED = "cancelled",
+  COMPLETED = "completed",
+}
+
+export type CreateOrderInput = {
+  status?: OrderStatus;
+  description?: string;
+  priority: number;
+};
 
 export type Order = {
   id: number;

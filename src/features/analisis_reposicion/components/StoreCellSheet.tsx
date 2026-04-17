@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useOrdersQuery } from "@/features/pedidos/queries/pedidos.queries";
 
 type StoreCellSheetData = {
   product_name: string;
@@ -29,6 +30,8 @@ type Props = {
 
 export function StoreCellSheet({ open, onOpenChange, data }: Props) {
  
+  const { data: orders, isLoading, isError } = useOrdersQuery();
+  
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
        
