@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { AnalisisFilters } from "@/schemas/api/analisis.schemas";
+import type { Order } from "@/features/pedidos/types/pedido.types";
 
 interface AnalisisStore {
   // UI
@@ -12,6 +13,9 @@ interface AnalisisStore {
 
   // paginación
   page: number;
+
+  // order selection
+  selectedOrder: Order | null;
 
   // acciones UI
   setViewMode: (mode: "compact" | "detailed") => void;
@@ -28,6 +32,10 @@ interface AnalisisStore {
   // acciones paginación
   setPage: (page: number) => void;
   reset: () => void;
+
+  // acciones orden
+  setSelectedOrder: (order: Order | null) => void;
+  clearSelectedOrder: () => void;
 }
 
 
@@ -54,6 +62,9 @@ export const useAnalisisStore = create<AnalisisStore>((set, get) => ({
 
   // paginación
   page: 1,
+
+  // order selection
+  selectedOrder: null,
 
   // acciones UI
   setViewMode: (mode) => set({ viewMode: mode }),
@@ -87,5 +98,10 @@ export const useAnalisisStore = create<AnalisisStore>((set, get) => ({
       filters: INITIAL_FILTERS,
       filtersApplied: false,
       page: 1,
+      selectedOrder: null,
     }),
+
+  // acciones orden
+  setSelectedOrder: (order) => set({ selectedOrder: order }),
+  clearSelectedOrder: () => set({ selectedOrder: null }),
 }));
