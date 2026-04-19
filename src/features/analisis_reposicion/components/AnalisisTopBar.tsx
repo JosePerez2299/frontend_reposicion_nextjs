@@ -10,7 +10,9 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useAnalisisStore } from "@/stores/resposicion-analisis.store";
-import { LayoutGrid, ListFilter, Table } from "lucide-react";
+import { LayoutGrid, ListFilter, Table, Eye } from "lucide-react";
+import { useState } from "react";
+import OrderDetailModal from "@/features/pedidos/components/OrderDetailModal";
 
 interface AnalisisTopBarProps {
   title: string;
@@ -30,6 +32,9 @@ export function AnalisisTopBar({ title, subtitle }: AnalisisTopBarProps) {
     setViewMode,
     toggleFilterPanel,
   } = useAnalisisStore();
+
+  const { selectedOrder } = useAnalisisStore();
+  const [openOrderModal, setOpenOrderModal] = useState(false);
 
   const hasApplied = hasActiveFilters();
   const handleClickFilter = () => {
@@ -92,6 +97,25 @@ export function AnalisisTopBar({ title, subtitle }: AnalisisTopBarProps) {
               </ToggleGroupItem>
             </ToggleGroup>
           </div>
+
+          {selectedOrder && (
+            <div className="flex items-center bg-muted rounded-md border border-border">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setOpenOrderModal(true)}
+                className={cn(TOGGLE_ITEM_CLASS)}
+              >
+                <Eye size={13} />
+                Ver pedido
+              </Button>
+              <OrderDetailModal
+                open={openOrderModal}
+                onOpenChange={setOpenOrderModal}
+                order={selectedOrder}
+              />
+            </div>
+          )}
         </div>
       </div>
     </Topbar>

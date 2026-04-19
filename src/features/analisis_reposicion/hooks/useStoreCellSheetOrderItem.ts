@@ -103,7 +103,7 @@ export function useStoreCellSheetOrderItem(
     if (!existingItem) return;
 
     try {
-      await deleteItemMutation.mutateAsync(existingItem.id);
+      await deleteItemMutation.mutateAsync({ itemId: existingItem.id, orderId: selectedOrder?.id });
       setShowEditForm(false);
       setShowAddForm(false);
       refetch();

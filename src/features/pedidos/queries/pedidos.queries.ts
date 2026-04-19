@@ -37,15 +37,27 @@ export function useOrderItemsQuery(
   });
 }
 
+export function useOrderItemsByOrderQuery(orderId?: number, options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: ["pedidos", "orderItemsByOrder", orderId],
+    queryFn: () => fetchOrderItems(orderId ?? 0),
+    enabled: !!orderId && options?.enabled !== false,
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+  });
+}
+
 export function useCreateOrderItemMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (input: CreateOrderItemInput) => createOrderItem(input),
     onSuccess: async (_, variables) => {
-      await queryClient.invalidateQueries({
-        queryKey: ["pedidos", "orderItems", variables.order_id],
-      });
+      const orderId = variables.order_id;
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["pedidos", "orderItems", orderId] }),
+        queryClient.invalidateQueries({ queryKey: ["pedidos", "orderItemsByOrder", orderId] }),
+      ]);
     },
   });
 }
@@ -55,8 +67,17 @@ export function useUpdateOrderItemMutation() {
 
   return useMutation({
     mutationFn: (input: UpdateOrderItemInput) => updateOrderItem(input.item_id, input),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["pedidos", "orderItems"] });
+    onSuccess: async (data) => {
+      const orderId = data?.order_id;
+      if (orderId) {
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["pedidos", "orderItems", orderId] }),
+          queryClient.invalidateQueries({ queryKey: ["pedidos", "orderItemsByOrder", orderId] }),
+        ]);
+      } else {
+        await queryClient.invalidateQueries({ queryKey: ["pedidos", "orderItems"] });
+        await queryClient.invalidateQueries({ queryKey: ["pedidos", "orderItemsByOrder"] });
+      }
     },
   });
 }
@@ -65,9 +86,21 @@ export function useDeleteOrderItemMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (itemId: number) => deleteOrderItem(itemId),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["pedidos", "orderItems"] });
+    // Accept variables { itemId, orderId? } so callers can provide orderId for targeted invalidation
+    mutationFn: (vars: { itemId: number; orderId?: number }) => deleteOrderItem(vars.itemId),
+    onSuccess: async (_data, variables) => {
+      const orderId = variables?.orderId;
+      if (orderId) {
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["pedidos", "orderItems", orderId] }),
+          queryClient.invalidateQueries({ queryKey: ["pedidos", "orderItemsByOrder", orderId] }),
+        ]);
+      } else {
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["pedidos", "orderItems"] }),
+          queryClient.invalidateQueries({ queryKey: ["pedidos", "orderItemsByOrder"] }),
+        ]);
+      }
     },
   });
 }

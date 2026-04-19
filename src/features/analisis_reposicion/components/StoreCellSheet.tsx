@@ -25,7 +25,7 @@ import {
 import { useAnalisisStore } from "@/stores/resposicion-analisis.store";
 import { OrderStatus } from "@/features/pedidos/types/pedido.types";
 import { useStoreCellSheetOrderItem } from "@/features/analisis_reposicion/hooks/useStoreCellSheetOrderItem";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -106,6 +106,19 @@ export function StoreCellSheet({ open, onOpenChange, data }: Props) {
   };
 
   const orderItemHook = useStoreCellSheetOrderItem(data, { isOpen: open });
+
+  useEffect(() => {
+    if (open) {
+      // Si la orden está pendiente y NO existe el item, abrir directamente el formulario de agregar
+      if (orderItemHook.isPendingOrder && !orderItemHook.existingItem) {
+        orderItemHook.setShowAddForm(true);
+      }
+    } else {
+      // Al cerrar, resetear vistas internas
+      orderItemHook.setShowAddForm(false);
+      orderItemHook.setShowEditForm(false);
+    }
+  }, [open, orderItemHook.isPendingOrder, orderItemHook.existingItem]);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
