@@ -47,3 +47,7 @@ export async function updateOrderItem(itemId: number, input: Partial<UpdateOrder
   const data = await api.put<OrderItemResponse>(`/orders/items/${itemId}`, payload);
   return data;
 }
+
+export async function deleteOrderItem(itemId: number): Promise<void> {
+  await api.delete(`/orders/items/${itemId}`);
+}

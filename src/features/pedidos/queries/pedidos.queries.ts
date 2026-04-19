@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createOrder, fetchOrders, fetchOrderItems, createOrderItem, updateOrderItem } from "@/services/pedidos.service";
+import { createOrder, fetchOrders, fetchOrderItems, createOrderItem, updateOrderItem, deleteOrderItem } from "@/services/pedidos.service";
 import type { CreateOrderInput, Order, OrderStatus, CreateOrderItemInput, UpdateOrderItemInput } from "@/features/pedidos/types/pedido.types";
 
 export function useOrdersQuery(limit: number = 100, status?: OrderStatus) {
@@ -55,6 +55,17 @@ export function useUpdateOrderItemMutation() {
 
   return useMutation({
     mutationFn: (input: UpdateOrderItemInput) => updateOrderItem(input.item_id, input),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["pedidos", "orderItems"] });
+    },
+  });
+}
+
+export function useDeleteOrderItemMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (itemId: number) => deleteOrderItem(itemId),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["pedidos", "orderItems"] });
     },

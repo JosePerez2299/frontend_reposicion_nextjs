@@ -8,6 +8,14 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -57,6 +65,7 @@ export function StoreCellSheet({ open, onOpenChange, data }: Props) {
   const createOrderMutation = useCreateOrderMutation();
 
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const {
     register,
@@ -182,6 +191,18 @@ export function StoreCellSheet({ open, onOpenChange, data }: Props) {
                           Cancelar
                         </Button>
                       </div>
+                      <div className="pt-1">
+                        <Button
+                          variant="destructive"
+                          onClick={orderItemHook.handleDeleteItem}
+                          disabled={orderItemHook.deleteItemMutation?.isPending}
+                          className="w-full"
+                        >
+                          {orderItemHook.deleteItemMutation?.isPending
+                            ? "Eliminando..."
+                            : "Eliminar Item"}
+                        </Button>
+                      </div>
                     </div>
                   ) : (
                     <div className="space-y-2 text-sm">
@@ -190,13 +211,45 @@ export function StoreCellSheet({ open, onOpenChange, data }: Props) {
                         <span className="font-medium">Cantidad:</span>{" "}
                         {orderItemHook.existingItem.quantity}
                       </div>
-                      <Button
-                        className="w-full mt-2"
-                        variant="outline"
-                        onClick={orderItemHook.openEditForm}
-                      >
-                        Editar Cantidad
-                      </Button>
+                      <div className="flex gap-2 mt-2">
+                        <Button
+                          className="flex-1"
+                          variant="outline"
+                          onClick={orderItemHook.openEditForm}
+                        >
+                          Editar Cantidad
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          onClick={() => setConfirmOpen(true)}
+                        >
+                          Eliminar
+                        </Button>
+                      </div>
+
+                      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+                        <DialogContent>
+                          <DialogTitle>Eliminar item</DialogTitle>
+                          <DialogDescription>
+                            ¿Estás seguro que deseas eliminar este item de la orden? Esta acción no se puede deshacer.
+                          </DialogDescription>
+                          <DialogFooter>
+                            <DialogClose asChild>
+                              <Button variant="outline">Cancelar</Button>
+                            </DialogClose>
+                            <Button
+                              variant="destructive"
+                              onClick={async () => {
+                                await orderItemHook.handleDeleteItem();
+                                setConfirmOpen(false);
+                              }}
+                              disabled={orderItemHook.deleteItemMutation?.isPending}
+                            >
+                              {orderItemHook.deleteItemMutation?.isPending ? "Eliminando..." : "Eliminar"}
+                            </Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
                     </div>
                   )
                 ) : orderItemHook.isPendingOrder ? (

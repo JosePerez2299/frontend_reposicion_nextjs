@@ -1,5 +1,5 @@
 import { useMemo, useState, useCallback, useEffect } from "react";
-import { useOrderItemsQuery, useCreateOrderItemMutation, useUpdateOrderItemMutation } from "@/features/pedidos/queries/pedidos.queries";
+import { useOrderItemsQuery, useCreateOrderItemMutation, useUpdateOrderItemMutation, useDeleteOrderItemMutation } from "@/features/pedidos/queries/pedidos.queries";
 import { useAnalisisStore } from "@/stores/resposicion-analisis.store";
 import type { OrderItemResponse } from "@/services/pedidos.service";
 
@@ -47,6 +47,7 @@ export function useStoreCellSheetOrderItem(
 
   const createItemMutation = useCreateOrderItemMutation();
   const updateItemMutation = useUpdateOrderItemMutation();
+  const deleteItemMutation = useDeleteOrderItemMutation();
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
@@ -98,6 +99,19 @@ export function useStoreCellSheetOrderItem(
     }
   }, [existingItem, selectedOrder, quantity, updateItemMutation, refetch]);
 
+  const handleDeleteItem = useCallback(async () => {
+    if (!existingItem) return;
+
+    try {
+      await deleteItemMutation.mutateAsync(existingItem.id);
+      setShowEditForm(false);
+      setShowAddForm(false);
+      refetch();
+    } catch (error) {
+      console.error("Error deleting item:", error);
+    }
+  }, [existingItem, deleteItemMutation, refetch]);
+
   const openEditForm = useCallback(() => {
     if (existingItem) setQuantity(existingItem.quantity);
     setShowEditForm(true);
@@ -121,6 +135,8 @@ export function useStoreCellSheetOrderItem(
     handleAddItem,
     updateItemMutation,
     handleUpdateItem,
+    deleteItemMutation,
+    handleDeleteItem,
     openEditForm,
   };
 }
