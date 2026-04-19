@@ -22,3 +22,27 @@ export type Order = {
   created_at: string;
   updated_at: string;
 };
+
+export type OrderItem = {
+  id: number;
+  order_id: number;
+  product_id: number;
+  store_id: string;
+  quantity: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CreateOrderItemInput = {
+  order_id: number;
+  product_id: number;
+  store_id: string;
+  quantity: number;
+};
+
+export type UpdateOrderItemInput = {
+  product_id?: number;
+  store_id?: string;
+  quantity?: number;
+  item_id: number;
+};

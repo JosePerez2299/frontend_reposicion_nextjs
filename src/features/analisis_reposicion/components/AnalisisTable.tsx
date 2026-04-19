@@ -160,7 +160,9 @@ function buildStoreColumns(
       return (
         <StoreValueCell
           viewMode={viewMode}
+          productId={Number(row.original.product_code)}
           productName={row.original.product_name}
+          storeId={store.id}
           storeName={store.name}
           qty_stock={val.qty_stock}
           qty_sold={val.qty_sold}

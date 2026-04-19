@@ -163,6 +163,11 @@ export const api = {
     return res.data
   },
 
+  async put<T>(endpoint: string, body: unknown, params?: Record<string, any>): Promise<T> {
+    const res = await apiInstance.put<T>(endpoint, body, { params })
+    return res.data
+  },
+
   async delete<T>(endpoint: string): Promise<T> {
     const res = await apiInstance.delete<T>(endpoint)
     return res.data

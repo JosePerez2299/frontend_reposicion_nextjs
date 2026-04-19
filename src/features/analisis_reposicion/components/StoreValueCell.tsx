@@ -14,7 +14,9 @@ import { getRotationStyle, getStockIndicatorClass } from "@/lib/utils";
 
 type Props = {
   viewMode: "compact" | "detailed";
+  productId: number;
   productName: string;
+  storeId: string;
   storeName: string;
   qty_stock: number;
   qty_sold: number;
@@ -25,7 +27,9 @@ type Props = {
 
 export function StoreValueCell({
   viewMode,
+  productId,
   productName,
+  storeId,
   storeName,
   qty_stock,
   qty_sold,
@@ -122,33 +126,39 @@ export function StoreValueCell({
         </TooltipContent>
       </Tooltip>
       
-      <StoreCellSheet 
-        open={dialogOpen} 
-        onOpenChange={setDialogOpen}
-        data={{
-          product_name: productName,
-          store_name: storeName,
-          rotation_pct: pct,
-          rotation_text_class: rotationColors.textClass,
-          qty_stock,
-          qty_sold
-        }}
-      />
+      {dialogOpen && (
+        <StoreCellSheet
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          data={{
+            product_id: productId,
+            product_name: productName,
+            store_id: storeId,
+            store_name: storeName,
+            rotation_pct: pct,
+            rotation_text_class: rotationColors.textClass,
+            qty_stock,
+            qty_sold,
+          }}
+        />
+      )}
 
-      <StoreCellModal
-        open={modalOpen}
-        onOpenChange={setModalOpen}
-        data={{
-          product_name: productName,
-          store_name: storeName,
-          rotation_pct: pct,
-          rotation_text_class: rotationColors.textClass,
-          qty_stock,
-          qty_sold,
-          transactions,
-          total_buy,
-        }}
-      />
+      {modalOpen && (
+        <StoreCellModal
+          open={modalOpen}
+          onOpenChange={setModalOpen}
+          data={{
+            product_name: productName,
+            store_name: storeName,
+            rotation_pct: pct,
+            rotation_text_class: rotationColors.textClass,
+            qty_stock,
+            qty_sold,
+            transactions,
+            total_buy,
+          }}
+        />
+      )}
     </TooltipProvider>
   );
 }

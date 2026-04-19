@@ -16,13 +16,16 @@ import {
 } from "@/features/pedidos/queries/pedidos.queries";
 import { useAnalisisStore } from "@/stores/resposicion-analisis.store";
 import { OrderStatus } from "@/features/pedidos/types/pedido.types";
+import { useStoreCellSheetOrderItem } from "@/features/analisis_reposicion/hooks/useStoreCellSheetOrderItem";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
 type StoreCellSheetData = {
+  product_id: number;
   product_name: string;
+  store_id: string;
   store_name: string;
   rotation_pct: string;
   rotation_text_class: string;
@@ -93,6 +96,8 @@ export function StoreCellSheet({ open, onOpenChange, data }: Props) {
     }
   };
 
+  const orderItemHook = useStoreCellSheetOrderItem(data, { isOpen: open });
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent>
@@ -137,9 +142,111 @@ export function StoreCellSheet({ open, onOpenChange, data }: Props) {
               </div>
 
               <div className="p-4 border rounded-lg border-dashed border-muted-foreground/25">
-                <p className="text-sm text-muted-foreground text-center">
-                  Aquí se agregarán los items de la orden (funcionalidad futura)
-                </p>
+                {orderItemHook.isLoadingItems ? (
+                  <p className="text-sm text-muted-foreground text-center">
+                    Verificando item...
+                  </p>
+                ) : orderItemHook.isErrorItems ? (
+                  <p className="text-sm text-destructive text-center">
+                    Error verificando item
+                  </p>
+                ) : orderItemHook.existingItem ? (
+                  orderItemHook.showEditForm ? (
+                    <div className="space-y-2">
+                      <div className="grid gap-1">
+                        <Label htmlFor="item-quantity">Cantidad</Label>
+                        <Input
+                          id="item-quantity"
+                          type="number"
+                          min={1}
+                          value={orderItemHook.quantity}
+                          onChange={(e) =>
+                            orderItemHook.setQuantity(Number(e.target.value))
+                          }
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={orderItemHook.handleUpdateItem}
+                          disabled={orderItemHook.updateItemMutation.isPending}
+                          className="flex-1"
+                        >
+                          {orderItemHook.updateItemMutation.isPending
+                            ? "Actualizando..."
+                            : "Actualizar"}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => orderItemHook.setShowEditForm(false)}
+                        >
+                          Cancelar
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2 text-sm">
+                      <div className="font-semibold text-green-600">✓ Item ya agregado</div>
+                      <div>
+                        <span className="font-medium">Cantidad:</span>{" "}
+                        {orderItemHook.existingItem.quantity}
+                      </div>
+                      <Button
+                        className="w-full mt-2"
+                        variant="outline"
+                        onClick={orderItemHook.openEditForm}
+                      >
+                        Editar Cantidad
+                      </Button>
+                    </div>
+                  )
+                ) : orderItemHook.isPendingOrder ? (
+                  <div className="space-y-3">
+                    {orderItemHook.showAddForm ? (
+                      <div className="space-y-2">
+                        <div className="grid gap-1">
+                          <Label htmlFor="item-quantity">Cantidad</Label>
+                          <Input
+                            id="item-quantity"
+                            type="number"
+                            min={1}
+                            value={orderItemHook.quantity}
+                            onChange={(e) =>
+                              orderItemHook.setQuantity(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={orderItemHook.handleAddItem}
+                            disabled={orderItemHook.createItemMutation.isPending}
+                            className="flex-1"
+                          >
+                            {orderItemHook.createItemMutation.isPending
+                              ? "Agregando..."
+                              : "Agregar a Orden"}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => orderItemHook.setShowAddForm(false)}
+                          >
+                            Cancelar
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <Button
+                        className="w-full"
+                        onClick={() => orderItemHook.setShowAddForm(true)}
+                      >
+                        + Agregar a Orden
+                      </Button>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center">
+                    Orden no pendiente - no se puede agregar items
+                  </p>
+                )}
               </div>
 
               <Button
