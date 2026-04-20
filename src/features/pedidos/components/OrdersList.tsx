@@ -6,8 +6,9 @@ import OrderStatusBadge from "./OrderStatusBadge";
 import OrderDetailModal from "./OrderDetailModal";
 import { Button } from "@/components/ui/button";
 import { ArrowUpRight, Clock, Hash, AlignLeft } from "lucide-react";
-import { useUpdateOrderMutation } from "@/features/pedidos/queries/pedidos.queries";
-import { DeleteConfirmDialog } from "@/components/DeleteConfirmDialog";
+import { useUpdateOrderMutation, useApproveOrderMutation, useRejectOrderMutation, useCancelOrderMutation, useCompleteOrderMutation } from "@/features/pedidos/queries/pedidos.queries";
+import { OrderStatusConfirmDialog } from "@/features/pedidos/components/OrderStatusConfirmDialog";
+import { toast } from "sonner";
 
 const STATUS_RANK: Record<OrderStatus, number> = {
   [OrderStatus.PENDING]: 0,
@@ -43,7 +44,7 @@ function getStatusActionLabel(next: OrderStatus) {
     case OrderStatus.REJECTED:
       return "Rechazar";
     case OrderStatus.CANCELLED:
-      return "Cancelar";
+      return "Eliminar";
     case OrderStatus.COMPLETED:
       return "Completar";
     default:
@@ -55,19 +56,53 @@ function OrderRow({ order }: { order: Order }) {
   const [open, setOpen] = useState(false);
   const isPending = order.status === "pending";
   const updateOrderMutation = useUpdateOrderMutation();
+  const approveOrderMutation = useApproveOrderMutation();
+  const rejectOrderMutation = useRejectOrderMutation();
+  const cancelOrderMutation = useCancelOrderMutation();
+  const completeOrderMutation = useCompleteOrderMutation();
   const allowed = getAllowedTransitions(order.status);
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingNextStatus, setPendingNextStatus] = useState<OrderStatus | null>(null);
+  const [statusError, setStatusError] = useState<string | null>(null);
 
   const requestStatusChange = (next: OrderStatus) => {
-    if (next === OrderStatus.CANCELLED) {
-      setPendingNextStatus(next);
-      setConfirmOpen(true);
-      return;
-    }
-    updateOrderMutation.mutate({ orderId: order.id, input: { status: next } });
+    setPendingNextStatus(next);
+    setConfirmOpen(true);
   };
+const handleStatusConfirm = async () => {
+  if (!pendingNextStatus) return;
+  setStatusError(null);
+
+  try {
+    switch (pendingNextStatus) {
+      case OrderStatus.NOT_APPROVED:
+        await updateOrderMutation.mutateAsync({ orderId: order.id, input: { status: pendingNextStatus } });
+        break;
+      case OrderStatus.APPROVED:
+        await approveOrderMutation.mutateAsync(order.id);
+        break;
+      case OrderStatus.REJECTED:
+        await rejectOrderMutation.mutateAsync(order.id);
+        break;
+      case OrderStatus.COMPLETED:
+        await completeOrderMutation.mutateAsync(order.id);
+        break;
+      case OrderStatus.CANCELLED:
+        await cancelOrderMutation.mutateAsync(order.id);
+        break;
+      default:
+        await updateOrderMutation.mutateAsync({ orderId: order.id, input: { status: pendingNextStatus } });
+    }
+
+    toast.success(`Orden #${order.id} actualizada`, {
+      description: `Estado cambiado a: ${getStatusActionLabel(pendingNextStatus)}`,
+    });
+  } catch (error: any) {
+    setStatusError(error.message || "Ocurrió un error al procesar la solicitud");
+    throw error;
+  }
+};
 
   return (
     <>
@@ -160,26 +195,31 @@ function OrderRow({ order }: { order: Order }) {
 
       <OrderDetailModal open={open} onOpenChange={setOpen} order={order} />
 
-      <DeleteConfirmDialog
-        open={confirmOpen}
-        onOpenChange={(next) => {
-          setConfirmOpen(next);
-          if (!next) setPendingNextStatus(null);
-        }}
-        title="Cancelar orden"
-        description="¿Estás seguro que deseas cancelar esta orden? Esta acción no se puede deshacer."
-        isPending={updateOrderMutation.isPending}
-        confirmLabel="Cancelar"
-        onConfirm={async () => {
-          if (!pendingNextStatus) return;
-          await updateOrderMutation.mutateAsync({
-            orderId: order.id,
-            input: { status: pendingNextStatus },
-          });
-          setConfirmOpen(false);
-          setPendingNextStatus(null);
-        }}
-      />
+      {pendingNextStatus && (
+        <OrderStatusConfirmDialog
+          open={confirmOpen}
+          onOpenChange={(next) => {
+            setConfirmOpen(next);
+            if (!next) {
+              setPendingNextStatus(null);
+              setStatusError(null);
+            }
+          }}
+          orderId={order.id}
+          currentStatus={order.status}
+          nextStatus={pendingNextStatus}
+          actionLabel={getStatusActionLabel(pendingNextStatus)}
+          onConfirm={handleStatusConfirm}
+          isPending={
+            updateOrderMutation.isPending ||
+            approveOrderMutation.isPending ||
+            rejectOrderMutation.isPending ||
+            cancelOrderMutation.isPending ||
+            completeOrderMutation.isPending
+          }
+          error={statusError}
+        />
+      )}
     </>
   );
 }

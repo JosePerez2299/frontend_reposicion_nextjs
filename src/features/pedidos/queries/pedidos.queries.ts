@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createOrder, fetchOrders, fetchOrderItems, createOrderItem, updateOrder, updateOrderItem, deleteOrderItem } from "@/services/pedidos.service";
+import { createOrder, fetchOrders, fetchOrderItems, createOrderItem, updateOrder, updateOrderItem, deleteOrderItem, approveOrder, rejectOrder, cancelOrder, completeOrder } from "@/services/pedidos.service";
 import type { CreateOrderInput, Order, OrderStatus, CreateOrderItemInput, UpdateOrderInput, UpdateOrderItemInput } from "@/features/pedidos/types/pedido.types";
 
 export function useOrdersQuery(limit: number = 100, status?: OrderStatus) {
@@ -90,6 +90,50 @@ export function useUpdateOrderItemMutation() {
         await queryClient.invalidateQueries({ queryKey: ["pedidos", "orderItems"] });
         await queryClient.invalidateQueries({ queryKey: ["pedidos", "orderItemsByOrder"] });
       }
+    },
+  });
+}
+
+export function useApproveOrderMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (orderId: number) => approveOrder(orderId),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["pedidos", "orders"] });
+    },
+  });
+}
+
+export function useRejectOrderMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (orderId: number) => rejectOrder(orderId),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["pedidos", "orders"] });
+    },
+  });
+}
+
+export function useCancelOrderMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (orderId: number) => cancelOrder(orderId),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["pedidos", "orders"] });
+    },
+  });
+}
+
+export function useCompleteOrderMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (orderId: number) => completeOrder(orderId),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["pedidos", "orders"] });
     },
   });
 }

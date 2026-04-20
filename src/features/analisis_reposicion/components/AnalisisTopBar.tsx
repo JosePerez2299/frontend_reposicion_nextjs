@@ -101,10 +101,10 @@ export function AnalisisTopBar({ title, subtitle }: AnalisisTopBarProps) {
           {selectedOrder && (
             <div className="flex items-center bg-muted rounded-md border border-border">
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
                 onClick={() => setOpenOrderModal(true)}
-                className={cn(TOGGLE_ITEM_CLASS)}
+                className="border-[var(--warning)] bg-[var(--warning)]/10 text-[var(--warning)] hover:bg-[var(--warning)]/20"
               >
                 <Eye size={13} />
                 Ver pedido

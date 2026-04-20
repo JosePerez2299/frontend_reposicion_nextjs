@@ -42,7 +42,7 @@ export function OrderForm({ onSubmit, defaultValues, isSubmitting }: Props) {
   };
 
   return (
-    <div className="rounded-xl border bg-card p-5">
+    <div className="rounded-xl border bg-muted/50 p-5 shadow-sm  ">
       <h3 className="text-sm font-semibold mb-4">Nueva orden</h3>
 
       <form onSubmit={handleSubmit(handle)}>

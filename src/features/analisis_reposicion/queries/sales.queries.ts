@@ -9,7 +9,7 @@ export const useRotationQuery = (
   enabled?: boolean,
 ) => {
   return useQuery({
-    queryKey: ["rotation", filters, page, limit],
+    queryKey: ["analisis", "rotation", filters, page, limit],
     queryFn: () => fetchRotation(filters, page, limit),
     staleTime: 1000 * 60 * 5, // 5 minutes
     enabled:

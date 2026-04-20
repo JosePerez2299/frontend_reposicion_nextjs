@@ -1,5 +1,5 @@
 import { api } from "@/config/api";
-import type { CreateOrderInput, Order, OrderStatus, OrderItem, CreateOrderItemInput, UpdateOrderInput, UpdateOrderItemInput } from "@/features/pedidos/types/pedido.types";
+import type { CreateOrderInput, Order, OrderStatus, OrderItem, CreateOrderItemInput, UpdateOrderItemInput, UpdateOrderInput } from "@/features/pedidos/types/pedido.types";
 import { z } from "zod";
 
 const OrderItemResponseSchema = z.object({
@@ -22,6 +22,27 @@ export async function fetchOrders(limit: number = 10000, status?: OrderStatus): 
 
 export async function createOrder(input: CreateOrderInput): Promise<Order> {
   const data = await api.post<Order>("/orders/", input);
+  return data;
+}
+
+// Servicios específicos para cada transición de estado
+export async function approveOrder(orderId: number): Promise<Order> {
+  const data = await api.post<Order>(`/orders/${orderId}/approve`, {});
+  return data;
+}
+
+export async function rejectOrder(orderId: number): Promise<Order> {
+  const data = await api.post<Order>(`/orders/${orderId}/reject`, {});
+  return data;
+}
+
+export async function cancelOrder(orderId: number): Promise<Order> {
+  const data = await api.post<Order>(`/orders/${orderId}/cancel`, {});
+  return data;
+}
+
+export async function completeOrder(orderId: number): Promise<Order> {
+  const data = await api.post<Order>(`/orders/${orderId}/complete`, {});
   return data;
 }
 

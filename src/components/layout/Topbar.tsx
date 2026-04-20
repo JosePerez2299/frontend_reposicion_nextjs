@@ -7,11 +7,17 @@ interface TopbarProps {
   title: string
   subtitle?: string
   children?: React.ReactNode
+  sticky?: boolean
+  className?: string
 }
 
-export function Topbar({ title, subtitle, children }: TopbarProps) {
+export function Topbar({ title, subtitle, children, sticky = false, className }: TopbarProps) {
+  const headerClasses = sticky 
+    ? "sticky top-0 z-40 bg-background"
+    : "flex-shrink-0 bg-secondary";
+    
   return (
-    <header className="flex items-center gap-3 h-12 px-4 border-b border-border flex-shrink-0 bg-secondary">
+    <header className={`flex items-center gap-3 h-12 px-4 border-b border-border ${headerClasses} ${className || ''}`}>
       <SidebarTrigger className="md:hidden" />
       <Separator orientation="vertical" className="h-4 md:hidden" />
 
