@@ -6,13 +6,13 @@ import { useOrdersQuery, useCreateOrderMutation } from "@/features/pedidos/queri
 import { OrderStatus } from "@/features/pedidos/types/pedido.types";
 
 const PedidosView = () => {
-  const { data, isLoading, error } = useOrdersQuery(100, OrderStatus.PENDING);
+  const { data, isLoading, error } = useOrdersQuery(100);
   const createOrderMutation = useCreateOrderMutation();
 
   const isSubmitting = createOrderMutation.isPending;
 
   const onSubmit = async (formData: any) => {
-    await createOrderMutation.mutateAsync({ description: formData.description, priority: formData.priority });
+    await createOrderMutation.mutateAsync({ description: formData.description, priority: formData.priority, status: OrderStatus.PENDING });
   };
 
   return (

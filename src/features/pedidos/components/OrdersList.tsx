@@ -1,15 +1,73 @@
 "use client";
 
 import { useState } from "react";
-import { Order } from "@/features/pedidos/types/pedido.types";
+import { Order, OrderStatus } from "@/features/pedidos/types/pedido.types";
 import OrderStatusBadge from "./OrderStatusBadge";
 import OrderDetailModal from "./OrderDetailModal";
 import { Button } from "@/components/ui/button";
 import { ArrowUpRight, Clock, Hash, AlignLeft } from "lucide-react";
+import { useUpdateOrderMutation } from "@/features/pedidos/queries/pedidos.queries";
+import { DeleteConfirmDialog } from "@/components/DeleteConfirmDialog";
+
+const STATUS_RANK: Record<OrderStatus, number> = {
+  [OrderStatus.PENDING]: 0,
+  [OrderStatus.NOT_APPROVED]: 1,
+  [OrderStatus.APPROVED]: 2,
+  [OrderStatus.CANCELLED]: 3,
+  [OrderStatus.REJECTED]: 3,
+  [OrderStatus.COMPLETED]: 4,
+};
+
+function getAllowedTransitions(status: OrderStatus): OrderStatus[] {
+  switch (status) {
+    case OrderStatus.PENDING:
+      return [OrderStatus.NOT_APPROVED, OrderStatus.CANCELLED];
+    case OrderStatus.NOT_APPROVED:
+      return [OrderStatus.APPROVED, OrderStatus.REJECTED, OrderStatus.CANCELLED];
+    case OrderStatus.APPROVED:
+      return [OrderStatus.COMPLETED];
+    case OrderStatus.REJECTED:
+    case OrderStatus.CANCELLED:
+    case OrderStatus.COMPLETED:
+    default:
+      return [];
+  }
+}
+
+function getStatusActionLabel(next: OrderStatus) {
+  switch (next) {
+    case OrderStatus.NOT_APPROVED:
+      return "Procesar";
+    case OrderStatus.APPROVED:
+      return "Aprobar";
+    case OrderStatus.REJECTED:
+      return "Rechazar";
+    case OrderStatus.CANCELLED:
+      return "Cancelar";
+    case OrderStatus.COMPLETED:
+      return "Completar";
+    default:
+      return "Actualizar";
+  }
+}
 
 function OrderRow({ order }: { order: Order }) {
   const [open, setOpen] = useState(false);
   const isPending = order.status === "pending";
+  const updateOrderMutation = useUpdateOrderMutation();
+  const allowed = getAllowedTransitions(order.status);
+
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingNextStatus, setPendingNextStatus] = useState<OrderStatus | null>(null);
+
+  const requestStatusChange = (next: OrderStatus) => {
+    if (next === OrderStatus.CANCELLED) {
+      setPendingNextStatus(next);
+      setConfirmOpen(true);
+      return;
+    }
+    updateOrderMutation.mutate({ orderId: order.id, input: { status: next } });
+  };
 
   return (
     <>
@@ -65,21 +123,63 @@ function OrderRow({ order }: { order: Order }) {
                   <span className="font-medium text-foreground">{order.priority}</span>
                 </div>
               </div>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-7 gap-1.5 text-xs text-primary hover:text-primary hover:bg-primary/8 px-2.5"
-                onClick={() => setOpen(true)}
-              >
-                Ver detalle
-                <ArrowUpRight className="w-3.5 h-3.5" />
-              </Button>
+              <div className="flex items-center gap-2">
+                {allowed.map((next) => (
+                  <Button
+                    key={next}
+                    size="sm"
+                    variant={next === OrderStatus.CANCELLED ? "destructive" : "outline"}
+                    className={
+                      next === OrderStatus.CANCELLED
+                        ? "h-7 text-xs px-3"
+                        : "h-7 text-xs px-3"
+                    }
+                    onClick={() => requestStatusChange(next)}
+                    disabled={updateOrderMutation.isPending}
+                  >
+                    {updateOrderMutation.isPending && updateOrderMutation.variables?.orderId === order.id
+                      ? "..."
+                      : getStatusActionLabel(next)}
+                  </Button>
+                ))}
+
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 gap-1.5 text-xs text-primary hover:text-primary hover:bg-primary/8 px-2.5"
+                  onClick={() => setOpen(true)}
+                >
+                  Ver detalle
+                  <ArrowUpRight className="w-3.5 h-3.5" />
+                </Button>
+              </div>
             </div>
           </div>
         </div>
       </li>
 
       <OrderDetailModal open={open} onOpenChange={setOpen} order={order} />
+
+      <DeleteConfirmDialog
+        open={confirmOpen}
+        onOpenChange={(next) => {
+          setConfirmOpen(next);
+          if (!next) setPendingNextStatus(null);
+        }}
+        title="Cancelar orden"
+        description="¿Estás seguro que deseas cancelar esta orden? Esta acción no se puede deshacer."
+        isPending={updateOrderMutation.isPending}
+        confirmLabel="Cancelar"
+        onConfirm={async () => {
+          if (!pendingNextStatus) return;
+          await updateOrderMutation.mutateAsync({
+            orderId: order.id,
+            input: { status: pendingNextStatus },
+          });
+          setConfirmOpen(false);
+          setPendingNextStatus(null);
+        }}
+      />
     </>
   );
 }
@@ -94,9 +194,16 @@ export function OrdersList({ orders }: { orders: Order[] }) {
     );
   }
 
+  const sorted = [...orders].sort((a, b) => {
+    const ra = STATUS_RANK[a.status];
+    const rb = STATUS_RANK[b.status];
+    if (ra !== rb) return ra - rb;
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
+
   return (
     <ul className="space-y-2">
-      {orders.map((o) => (
+      {sorted.map((o) => (
         <OrderRow key={o.id} order={o} />
       ))}
     </ul>

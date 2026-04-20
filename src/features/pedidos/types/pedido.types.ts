@@ -13,6 +13,12 @@ export type CreateOrderInput = {
   priority: number;
 };
 
+export type UpdateOrderInput = {
+  status?: OrderStatus;
+  description?: string;
+  priority?: number;
+};
+
 export type Order = {
   id: number;
   user_id: number;

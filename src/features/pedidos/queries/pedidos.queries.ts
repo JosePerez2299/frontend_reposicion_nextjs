@@ -1,12 +1,24 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createOrder, fetchOrders, fetchOrderItems, createOrderItem, updateOrderItem, deleteOrderItem } from "@/services/pedidos.service";
-import type { CreateOrderInput, Order, OrderStatus, CreateOrderItemInput, UpdateOrderItemInput } from "@/features/pedidos/types/pedido.types";
+import { createOrder, fetchOrders, fetchOrderItems, createOrderItem, updateOrder, updateOrderItem, deleteOrderItem } from "@/services/pedidos.service";
+import type { CreateOrderInput, Order, OrderStatus, CreateOrderItemInput, UpdateOrderInput, UpdateOrderItemInput } from "@/features/pedidos/types/pedido.types";
 
 export function useOrdersQuery(limit: number = 100, status?: OrderStatus) {
   return useQuery<Order[]>({
     queryKey: ["pedidos", "orders", { limit, status }],
     queryFn: () => fetchOrders(limit, status),
     staleTime: 1000 * 60 * 5,
+  });
+}
+
+export function useUpdateOrderMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (vars: { orderId: number; input: UpdateOrderInput }) =>
+      updateOrder(vars.orderId, vars.input),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["pedidos", "orders"] });
+    },
   });
 }
 
