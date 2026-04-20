@@ -14,7 +14,7 @@ import { getRotationStyle, getStockIndicatorClass } from "@/lib/utils";
 
 type Props = {
   viewMode: "compact" | "detailed";
-  productId: number;
+  productId: string;
   productName: string;
   storeId: string;
   storeName: string;

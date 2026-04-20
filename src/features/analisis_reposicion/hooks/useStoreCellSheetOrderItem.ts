@@ -4,7 +4,7 @@ import { useAnalisisStore } from "@/stores/resposicion-analisis.store";
 import type { OrderItemResponse } from "@/services/pedidos.service";
 
 type StoreCellSheetData = {
-  product_id: number;
+  product_id: string;
   product_name: string;
   store_id: string;
   store_name: string;
@@ -39,7 +39,7 @@ export function useStoreCellSheetOrderItem(
   }, [options?.isOpen, orderId, productId, storeId, selectedOrder?.status]);
 
   const { data: orderItems, isLoading: isLoadingItems, isError: isErrorItems, refetch } =
-    useOrderItemsQuery(orderId ?? 0, { product_id: productId ?? 0, store_id: storeId ?? "" }, { enabled: shouldFetchItems });
+    useOrderItemsQuery(orderId ?? 0, { product_id: productId ?? "", store_id: storeId ?? "" }, { enabled: shouldFetchItems });
 
   const existingItem: OrderItemResponse | null = useMemo(() => {
     return orderItems && orderItems.length > 0 ? orderItems[0] : null;

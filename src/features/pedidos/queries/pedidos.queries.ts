@@ -23,7 +23,7 @@ export function useCreateOrderMutation() {
 
 export function useOrderItemsQuery(
   orderId: number,
-  filters?: { product_id?: number; store_id?: string },
+  filters?: { product_id?: string; store_id?: string },
   options?: { enabled?: boolean }
 ) {
   const hasFilters = !!filters?.product_id && !!filters?.store_id;

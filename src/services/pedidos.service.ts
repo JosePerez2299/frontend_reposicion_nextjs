@@ -5,7 +5,8 @@ import { z } from "zod";
 const OrderItemResponseSchema = z.object({
   id: z.number(),
   order_id: z.number(),
-  product_id: z.number(),
+  product_id: z.string(),
+  product_name: z.string().nullable(),
   store_id: z.string(),
   quantity: z.number(),
   created_at: z.string(),
@@ -25,7 +26,7 @@ export async function createOrder(input: CreateOrderInput): Promise<Order> {
 }
 
 export async function fetchOrderItems(orderId: number, filters?: {
-  product_id?: number;
+  product_id?: string;
   store_id?: string;
 }): Promise<OrderItemResponse[]> {
   const data = await api.get<OrderItemResponse[]>(`/orders/items/`, {

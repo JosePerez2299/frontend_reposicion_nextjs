@@ -31,7 +31,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
 type StoreCellSheetData = {
-  product_id: number;
+  product_id: string;
   product_name: string;
   store_id: string;
   store_name: string;
