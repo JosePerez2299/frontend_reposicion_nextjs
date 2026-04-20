@@ -9,8 +9,9 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { DeleteConfirmDialog } from "@/components/DeleteConfirmDialog";
 import { useState } from "react";
+
 import {
   useOrderItemsByOrderQuery,
   useUpdateOrderItemMutation,
@@ -40,6 +41,8 @@ export function OrderDetailModal({ open, onOpenChange, order }: Props) {
 
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editingQty, setEditingQty] = useState<number>(1);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
 
   const isPending = order?.status === "pending";
 
@@ -70,6 +73,11 @@ export function OrderDetailModal({ open, onOpenChange, order }: Props) {
     } catch (e) {
       console.error(e);
     }
+  };
+
+  const requestDelete = (itemId: number) => {
+    setPendingDeleteId(itemId);
+    setDeleteConfirmOpen(true);
   };
 
   return (
@@ -181,7 +189,7 @@ export function OrderDetailModal({ open, onOpenChange, order }: Props) {
                               size="sm"
                               variant="destructive"
                               className="h-7 text-xs px-3"
-                              onClick={() => handleDelete(it.id)}
+                              onClick={() => requestDelete(it.id)}
                               disabled={deleteMutation.isPending}
                             >
                               {deleteMutation.isPending ? "..." : "Eliminar"}
@@ -211,6 +219,23 @@ export function OrderDetailModal({ open, onOpenChange, order }: Props) {
             </DialogClose>
           </DialogFooter>
         </div>
+
+        <DeleteConfirmDialog
+          open={deleteConfirmOpen}
+          onOpenChange={(next) => {
+            setDeleteConfirmOpen(next);
+            if (!next) setPendingDeleteId(null);
+          }}
+          title="Eliminar item"
+          description="¿Estás seguro que deseas eliminar este item de la orden? Esta acción no se puede deshacer."
+          isPending={deleteMutation.isPending}
+          onConfirm={async () => {
+            if (pendingDeleteId === null) return;
+            await handleDelete(pendingDeleteId);
+            setDeleteConfirmOpen(false);
+            setPendingDeleteId(null);
+          }}
+        />
 
       </DialogContent>
     </Dialog>

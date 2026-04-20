@@ -4,7 +4,7 @@ import Cookies from "js-cookie";
 import { toast } from "sonner";
 import { getMeApi, loginApi, registerApi } from "@/services/auth.service";
 import { useAuthStore } from "@/stores/auth.store";
-import { useAnalisisStore } from "@/stores/resposicion-analisis.store";
+import { hardLogout } from "@/lib/hard-logout";
 import type { LoginRequest, RegisterRequest } from "@/schemas/api/auth.schemas";
 import { getErrorMessage } from "@/lib/errors";
 
@@ -73,20 +73,14 @@ export function useMe() {
 // ── Logout ───────────────────────────────────────────────────────
 
 export function useLogout() {
-  const logout = useAuthStore((s) => s.logout);
-  const resetAnalisis = useAnalisisStore((s) => s.reset);
   const router = useRouter();
   const queryClient = useQueryClient();
 
   return () => {
-    // 1. Clear ALL React Query cache (fresh session, no stale data)
+    // Keep existing QueryClient instance usage (in case there are multiple in runtime),
+    // but also run shared hardLogout() to reset feature stores + auth.
     queryClient.clear();
-
-    // 2. Reset feature stores (filters, pagination, view state)
-    resetAnalisis();
-
-    // 3. Clear Zustand auth state + cookies (access + refresh tokens)
-    logout();
+    hardLogout();
 
     toast.info("Sesión cerrada");
     router.push("/login");

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useMe } from "@/queries/auth.queries";
 import { refreshTokenApi } from "@/services/auth.service";
 import { useAuthStore } from "@/stores/auth.store";
+import { hardLogout } from "@/lib/hard-logout";
 import { getJwtExpiryMs } from "@/lib/jwt";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -33,7 +34,6 @@ function SessionExpiryDialog() {
   const accessToken = useAuthStore((s) => s.accessToken);
   const refreshToken = useAuthStore((s) => s.refreshToken);
   const setTokens = useAuthStore((s) => s.setTokens);
-  const logout = useAuthStore((s) => s.logout);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   const [open, setOpen] = useState(false);
@@ -79,7 +79,7 @@ function SessionExpiryDialog() {
     if (remainingSeconds <= 0) {
       if (!hasRedirectedRef.current) {
         hasRedirectedRef.current = true;
-        logout();
+        hardLogout();
         router.push("/login");
         router.refresh();
       }
@@ -91,13 +91,13 @@ function SessionExpiryDialog() {
     } else {
       setOpen(false);
     }
-  }, [isAuthenticated, logout, pathname, remainingSeconds, router]);
+  }, [isAuthenticated, pathname, remainingSeconds, router]);
 
   const handleExtend = async () => {
     if (isExtending) return;
     if (!refreshToken) {
       toast.error("No hay refresh token. Inicia sesión nuevamente.");
-      logout();
+      hardLogout();
       router.push("/login");
       router.refresh();
       return;
@@ -112,7 +112,7 @@ function SessionExpiryDialog() {
       hasRedirectedRef.current = false;
     } catch {
       toast.error("No se pudo extender la sesión. Inicia sesión nuevamente.");
-      logout();
+      hardLogout();
       router.push("/login");
       router.refresh();
     } finally {

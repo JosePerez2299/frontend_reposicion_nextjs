@@ -8,16 +8,9 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DialogClose,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DeleteConfirmDialog } from "@/components/DeleteConfirmDialog";
 import {
   useOrdersQuery,
   useCreateOrderMutation,
@@ -240,29 +233,17 @@ export function StoreCellSheet({ open, onOpenChange, data }: Props) {
                         </Button>
                       </div>
 
-                      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-                        <DialogContent>
-                          <DialogTitle>Eliminar item</DialogTitle>
-                          <DialogDescription>
-                            ¿Estás seguro que deseas eliminar este item de la orden? Esta acción no se puede deshacer.
-                          </DialogDescription>
-                          <DialogFooter>
-                            <DialogClose asChild>
-                              <Button variant="outline">Cancelar</Button>
-                            </DialogClose>
-                            <Button
-                              variant="destructive"
-                              onClick={async () => {
-                                await orderItemHook.handleDeleteItem();
-                                setConfirmOpen(false);
-                              }}
-                              disabled={orderItemHook.deleteItemMutation?.isPending}
-                            >
-                              {orderItemHook.deleteItemMutation?.isPending ? "Eliminando..." : "Eliminar"}
-                            </Button>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
+                      <DeleteConfirmDialog
+                        open={confirmOpen}
+                        onOpenChange={setConfirmOpen}
+                        title="Eliminar item"
+                        description="¿Estás seguro que deseas eliminar este item de la orden? Esta acción no se puede deshacer."
+                        isPending={orderItemHook.deleteItemMutation?.isPending}
+                        onConfirm={async () => {
+                          await orderItemHook.handleDeleteItem();
+                          setConfirmOpen(false);
+                        }}
+                      />
                     </div>
                   )
                 ) : orderItemHook.isPendingOrder ? (

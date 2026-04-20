@@ -2,6 +2,7 @@ import axios, { AxiosError, AxiosInstance } from 'axios'
 import Cookies from 'js-cookie'
 import qs from 'qs'
 import { useAuthStore } from '@/stores/auth.store'
+import { hardLogout } from '@/lib/hard-logout'
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api/v1'
 
@@ -133,7 +134,7 @@ apiInstance.interceptors.response.use(
         Cookies.remove('auth_token')
         Cookies.remove('refresh_token')
         Cookies.remove('auth_user')
-        useAuthStore.getState().logout()
+        hardLogout()
         throw ApiError.fromResponse(401, { detail: 'Sesión expirada. Inicia sesión nuevamente.' })
       } finally {
         isRefreshing = false
