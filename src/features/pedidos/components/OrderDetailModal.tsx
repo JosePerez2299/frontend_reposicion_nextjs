@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DeleteConfirmDialog } from "@/components/DeleteConfirmDialog";
 import { useState } from "react";
+import { FileDown } from "lucide-react";
+import { downloadPdf } from "@/services/pedidos.service";
 
 import {
   useOrderItemsByOrderQuery,
@@ -211,7 +213,15 @@ export function OrderDetailModal({ open, onOpenChange, order }: Props) {
 
         {/* ── Footer ── */}
         <div className="px-6 py-4 border-t">
-          <DialogFooter>
+          <DialogFooter className="flex gap-2">
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto gap-2"
+              onClick={() => downloadPdf(order?.id)}
+            >
+              <FileDown className="w-4 h-4" />
+              Descargar PDF
+            </Button>
             <DialogClose asChild>
               <Button variant="outline" className="w-full sm:w-auto">
                 Cerrar

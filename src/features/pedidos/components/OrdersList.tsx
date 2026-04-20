@@ -5,10 +5,11 @@ import { Order, OrderStatus } from "@/features/pedidos/types/pedido.types";
 import OrderStatusBadge from "./OrderStatusBadge";
 import OrderDetailModal from "./OrderDetailModal";
 import { Button } from "@/components/ui/button";
-import { ArrowUpRight, Clock, Hash, AlignLeft } from "lucide-react";
+import { ArrowUpRight, Clock, Hash, AlignLeft, FileDown } from "lucide-react";
 import { useUpdateOrderMutation, useApproveOrderMutation, useRejectOrderMutation, useCancelOrderMutation, useCompleteOrderMutation } from "@/features/pedidos/queries/pedidos.queries";
 import { OrderStatusConfirmDialog } from "@/features/pedidos/components/OrderStatusConfirmDialog";
 import { toast } from "sonner";
+import { downloadPdf } from "@/services/pedidos.service";
 
 const STATUS_RANK: Record<OrderStatus, number> = {
   [OrderStatus.PENDING]: 0,
@@ -70,39 +71,40 @@ function OrderRow({ order }: { order: Order }) {
     setPendingNextStatus(next);
     setConfirmOpen(true);
   };
-const handleStatusConfirm = async () => {
-  if (!pendingNextStatus) return;
-  setStatusError(null);
 
-  try {
-    switch (pendingNextStatus) {
-      case OrderStatus.NOT_APPROVED:
-        await updateOrderMutation.mutateAsync({ orderId: order.id, input: { status: pendingNextStatus } });
-        break;
-      case OrderStatus.APPROVED:
-        await approveOrderMutation.mutateAsync(order.id);
-        break;
-      case OrderStatus.REJECTED:
-        await rejectOrderMutation.mutateAsync(order.id);
-        break;
-      case OrderStatus.COMPLETED:
-        await completeOrderMutation.mutateAsync(order.id);
-        break;
-      case OrderStatus.CANCELLED:
-        await cancelOrderMutation.mutateAsync(order.id);
-        break;
-      default:
-        await updateOrderMutation.mutateAsync({ orderId: order.id, input: { status: pendingNextStatus } });
+  const handleStatusConfirm = async () => {
+    if (!pendingNextStatus) return;
+    setStatusError(null);
+
+    try {
+      switch (pendingNextStatus) {
+        case OrderStatus.NOT_APPROVED:
+          await updateOrderMutation.mutateAsync({ orderId: order.id, input: { status: pendingNextStatus } });
+          break;
+        case OrderStatus.APPROVED:
+          await approveOrderMutation.mutateAsync(order.id);
+          break;
+        case OrderStatus.REJECTED:
+          await rejectOrderMutation.mutateAsync(order.id);
+          break;
+        case OrderStatus.COMPLETED:
+          await completeOrderMutation.mutateAsync(order.id);
+          break;
+        case OrderStatus.CANCELLED:
+          await cancelOrderMutation.mutateAsync(order.id);
+          break;
+        default:
+          await updateOrderMutation.mutateAsync({ orderId: order.id, input: { status: pendingNextStatus } });
+      }
+
+      toast.success(`Orden #${order.id} actualizada`, {
+        description: `Estado cambiado a: ${getStatusActionLabel(pendingNextStatus)}`,
+      });
+    } catch (error: any) {
+      setStatusError(error.message || "Ocurrió un error al procesar la solicitud");
+      throw error;
     }
-
-    toast.success(`Orden #${order.id} actualizada`, {
-      description: `Estado cambiado a: ${getStatusActionLabel(pendingNextStatus)}`,
-    });
-  } catch (error: any) {
-    setStatusError(error.message || "Ocurrió un error al procesar la solicitud");
-    throw error;
-  }
-};
+  };
 
   return (
     <>
@@ -186,6 +188,16 @@ const handleStatusConfirm = async () => {
                 >
                   Ver detalle
                   <ArrowUpRight className="w-3.5 h-3.5" />
+                </Button>
+
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 gap-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-muted px-2.5"
+                  onClick={() => downloadPdf(order.id)}
+                  title="Descargar PDF"
+                >
+                  <FileDown className="w-3.5 h-3.5" />
                 </Button>
               </div>
             </div>

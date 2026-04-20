@@ -81,3 +81,28 @@ export async function updateOrderItem(itemId: number, input: Partial<UpdateOrder
 export async function deleteOrderItem(itemId: number): Promise<void> {
   await api.delete(`/orders/items/${itemId}`);
 }
+
+
+export const downloadPdf = async (orderId: number) => {
+    const res = await api.download(`/orders/${orderId}/pdf`);
+
+    const blob = new Blob([res.data], { type: "application/pdf" });
+
+    // Intentar extraer nombre desde headers (backend)
+    const contentDisposition = res.headers["content-disposition"];
+    let filename = `order_${orderId}.pdf`;
+
+    if (contentDisposition) {
+      const match = contentDisposition.match(/filename="?(.+)"?/);
+      if (match?.[1]) filename = match[1];
+    }
+
+    const url = window.URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    link.click();
+
+    URL.revokeObjectURL(url);
+  };
