@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createOrder, fetchOrders, fetchOrderItems, createOrderItem, updateOrder, updateOrderItem, deleteOrderItem, approveOrder, rejectOrder, cancelOrder, completeOrder } from "@/services/pedidos.service";
 import type { CreateOrderInput, Order, OrderStatus, CreateOrderItemInput, UpdateOrderInput, UpdateOrderItemInput } from "@/features/pedidos/types/pedido.types";
+import type { OrderItemResponse } from "@/services/pedidos.service";
 
 export function useOrdersQuery(limit: number = 100, status?: OrderStatus) {
   return useQuery<Order[]>({
@@ -66,10 +67,21 @@ export function useCreateOrderItemMutation() {
     mutationFn: (input: CreateOrderItemInput) => createOrderItem(input),
     onSuccess: async (_, variables) => {
       const orderId = variables.order_id;
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["pedidos", "orderItems", orderId] }),
-        queryClient.invalidateQueries({ queryKey: ["pedidos", "orderItemsByOrder", orderId] }),
-      ]);
+      // Mantener actualizado el cache global de items por orden para permitir UI reactiva (checks)
+      queryClient.setQueryData(
+        ["pedidos", "orderItemsByOrder", orderId],
+        (prev: OrderItemResponse[] | undefined) => {
+          const existing = prev ?? [];
+          // Evitar duplicados por id si el backend retorna el item creado
+          const created = _ as OrderItemResponse;
+          if (!created?.id) return existing;
+          if (existing.some((it) => it.id === created.id)) return existing;
+          return [...existing, created];
+        }
+      );
+
+      // Mantener coherencia de vistas filtradas (sheet) si existen, sin tocar la lista completa.
+      await queryClient.invalidateQueries({ queryKey: ["pedidos", "orderItems", orderId] });
     },
   });
 }
@@ -82,10 +94,15 @@ export function useUpdateOrderItemMutation() {
     onSuccess: async (data) => {
       const orderId = data?.order_id;
       if (orderId) {
-        await Promise.all([
-          queryClient.invalidateQueries({ queryKey: ["pedidos", "orderItems", orderId] }),
-          queryClient.invalidateQueries({ queryKey: ["pedidos", "orderItemsByOrder", orderId] }),
-        ]);
+        queryClient.setQueryData(
+          ["pedidos", "orderItemsByOrder", orderId],
+          (prev: OrderItemResponse[] | undefined) => {
+            const existing = prev ?? [];
+            if (!data?.id) return existing;
+            return existing.map((it) => (it.id === data.id ? (data as OrderItemResponse) : it));
+          }
+        );
+        await queryClient.invalidateQueries({ queryKey: ["pedidos", "orderItems", orderId] });
       } else {
         await queryClient.invalidateQueries({ queryKey: ["pedidos", "orderItems"] });
         await queryClient.invalidateQueries({ queryKey: ["pedidos", "orderItemsByOrder"] });
@@ -147,10 +164,14 @@ export function useDeleteOrderItemMutation() {
     onSuccess: async (_data, variables) => {
       const orderId = variables?.orderId;
       if (orderId) {
-        await Promise.all([
-          queryClient.invalidateQueries({ queryKey: ["pedidos", "orderItems", orderId] }),
-          queryClient.invalidateQueries({ queryKey: ["pedidos", "orderItemsByOrder", orderId] }),
-        ]);
+        queryClient.setQueryData(
+          ["pedidos", "orderItemsByOrder", orderId],
+          (prev: OrderItemResponse[] | undefined) => {
+            const existing = prev ?? [];
+            return existing.filter((it) => it.id !== variables.itemId);
+          }
+        );
+        await queryClient.invalidateQueries({ queryKey: ["pedidos", "orderItems", orderId] });
       } else {
         await Promise.all([
           queryClient.invalidateQueries({ queryKey: ["pedidos", "orderItems"] }),

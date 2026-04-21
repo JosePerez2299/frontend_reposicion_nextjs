@@ -25,6 +25,8 @@ import {
 } from "@/components/ui/tooltip";
 import { StoreValueCell } from "@/features/analisis_reposicion/components/StoreValueCell";
 import { getCompleteLegendConfig } from "@/lib/utils";
+import { useOrderItemsByOrderQuery } from "@/features/pedidos/queries/pedidos.queries";
+import type { OrderItemResponse } from "@/services/pedidos.service";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -128,7 +130,8 @@ const productColumns: ColumnDef<AnalisisRow>[] = [
 
 function buildStoreColumns(
   stores: StoreHeader[],
-  viewMode: "compact" | "detailed"
+  viewMode: "compact" | "detailed",
+  hasOrderForCell: (productId: string, storeId: string) => boolean
 ): ColumnDef<AnalisisRow>[] {
   return (stores ?? []).map((store) => ({
     id: `store_${store.id}`,
@@ -169,6 +172,7 @@ function buildStoreColumns(
           transactions={val.transactions}
           total_buy={val.total_buy}
           rotation={val.rotation}
+          hasOrder={hasOrderForCell(row.original.product_code, store.id)}
         />
       );
     },
@@ -184,11 +188,32 @@ interface AnalisisTableProps {
 }
 
 export function AnalisisTable({ data }: AnalisisTableProps) {
-  const { viewMode, setPage } = useAnalisisStore();
+  const { viewMode, setPage, selectedOrder } = useAnalisisStore();
+
+  const { data: orderItems } = useOrderItemsByOrderQuery(selectedOrder?.id, {
+    enabled: !!selectedOrder?.id,
+  });
+
+  const hasOrderSet = useMemo(() => {
+    const set = new Set<string>();
+    const items = (orderItems ?? []) as OrderItemResponse[];
+    for (const it of items) {
+      if (!it?.product_id || !it?.store_id) continue;
+      set.add(`${it.product_id}|${it.store_id}`);
+    }
+    return set;
+  }, [orderItems]);
+
+  const hasOrderForCell = useMemo(() => {
+    return (productId: string, storeId: string) => hasOrderSet.has(`${productId}|${storeId}`);
+  }, [hasOrderSet]);
 
   const columns = useMemo(
-    () => [...productColumns, ...buildStoreColumns(data.stores ?? [], viewMode)],
-    [data.stores, viewMode]
+    () => [
+      ...productColumns,
+      ...buildStoreColumns(data.stores ?? [], viewMode, hasOrderForCell),
+    ],
+    [data.stores, viewMode, hasOrderForCell]
   );
 
   const table = useReactTable({

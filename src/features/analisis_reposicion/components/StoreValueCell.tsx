@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/tooltip";
 import { StoreCellSheet } from "./StoreCellSheet";
 import { StoreCellModal } from "./StoreCellModal";
-import { Plus } from "lucide-react";
+import { Check, Plus } from "lucide-react";
 import { getRotationStyle, getStockIndicatorClass } from "@/lib/utils";
 
 type Props = {
@@ -23,6 +23,7 @@ type Props = {
   transactions: number;
   total_buy: number;
   rotation: number;
+  hasOrder?: boolean;
 };
 
 export function StoreValueCell({
@@ -36,6 +37,7 @@ export function StoreValueCell({
   transactions,
   total_buy,
   rotation,
+  hasOrder,
 }: Props) {
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -66,15 +68,27 @@ export function StoreValueCell({
             className="relative group/storecell h-full w-full flex items-center justify-center cursor-help bg-background transition-[filter] duration-100 hover:brightness-95"
             onClick={handleOpenModal}
           >
-            <button
-              type="button"
-              className="absolute top-1 right-1 opacity-0 group-hover/storecell:opacity-100 transition-opacity duration-150"
-              onClick={handleOpenDialog}
-            >
-              <span className="flex h-6 w-6 items-center justify-center rounded-md border border-border bg-background/50 supports-[backdrop-filter]:bg-background/30 backdrop-blur text-muted-foreground hover:bg-background/70">
-                <Plus className="h-4 w-4" />
-              </span>
-            </button>
+            {hasOrder ? (
+              <button
+                type="button"
+                className="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-md border border-emerald-600/30 bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/15"
+                onClick={handleOpenDialog}
+                aria-label="Abrir pedido"
+                title="Abrir pedido"
+              >
+                <Check className="h-4 w-4" />
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="absolute top-1 right-1 opacity-0 group-hover/storecell:opacity-100 transition-opacity duration-150"
+                onClick={handleOpenDialog}
+              >
+                <span className="flex h-6 w-6 items-center justify-center rounded-md border border-border bg-background/50 supports-[backdrop-filter]:bg-background/30 backdrop-blur text-muted-foreground hover:bg-background/70">
+                  <Plus className="h-4 w-4" />
+                </span>
+              </button>
+            )}
 
             {viewMode === "detailed" ? (
               <div className="grid grid-cols-3 w-full">

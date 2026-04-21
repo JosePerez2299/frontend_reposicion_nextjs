@@ -316,16 +316,14 @@ function ItemEditorBulto({
   const [showAddForm, setShowAddForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [quantity, setQuantity] = useState<number>(() =>
-    sheetData && sheetData.qty_stock > 0 ? sheetData.qty_stock : 1
-  );
+  const [quantity, setQuantity] = useState<number>(1);
 
   useEffect(() => {
     if (!enabled) return;
     if (bultoItem) {
       setQuantity(bultoItem.quantity);
-    } else if (sheetData) {
-      setQuantity(sheetData.qty_stock > 0 ? sheetData.qty_stock : 1);
+    } else {
+      setQuantity(1);
     }
   }, [enabled, bultoItem, sheetData]);
 
