@@ -1,4 +1,4 @@
-import { fetchProductosByName } from "@/services/productos.service";
+import { fetchProductosByName, fetchProductVariants } from "@/services/productos.service";
 import { useQuery } from "@tanstack/react-query";
 import type { Product } from "@/schemas/entities/product.schema";
 
@@ -14,5 +14,14 @@ export function useBuscarProductos(
     queryFn: () => fetchProductosByName(q, categoryId, groups, subgroups),
     enabled: q.length >= 2, // no busca hasta tener 2+ chars (ignora espacios)
     staleTime: 1000 * 30,
+  });
+}
+
+export function useProductVariants(productCode?: string, options?: { enabled?: boolean }) {
+  return useQuery<string[]>({
+    queryKey: ["productos", "variants", productCode],
+    queryFn: () => fetchProductVariants(productCode ?? ""),
+    enabled: !!productCode && options?.enabled !== false,
+    staleTime: 1000 * 60 * 10,
   });
 }

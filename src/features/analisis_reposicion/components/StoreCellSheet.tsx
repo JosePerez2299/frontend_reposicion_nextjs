@@ -196,6 +196,39 @@ export function StoreCellSheet({ open, onOpenChange, data }: Props) {
                           </SelectContent>
                         </Select>
                       </div>
+                      {orderItemHook.type === OrderItemType.UNIDAD && (
+                        <div className="grid gap-1">
+                          <Label htmlFor="item-variant">Variante</Label>
+                          <Select
+                            value={orderItemHook.variant}
+                            onValueChange={(v) => orderItemHook.setVariant(v)}
+                            disabled={orderItemHook.variantsQuery.isLoading}
+                          >
+                            <SelectTrigger id="item-variant" className="w-full">
+                              <SelectValue
+                                placeholder={
+                                  orderItemHook.variantsQuery.isLoading
+                                    ? "Cargando..."
+                                    : "Seleccionar"
+                                }
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {orderItemHook.parsedVariants.length > 0 ? (
+                                orderItemHook.parsedVariants.map((v) => (
+                                  <SelectItem key={v} value={v}>
+                                    {v}
+                                  </SelectItem>
+                                ))
+                              ) : (
+                                <SelectItem value="" disabled>
+                                  Sin variantes
+                                </SelectItem>
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
                       <div className="grid gap-1">
                         <Label htmlFor="item-quantity">Cantidad</Label>
                         <Input
@@ -245,6 +278,12 @@ export function StoreCellSheet({ open, onOpenChange, data }: Props) {
                         <span className="font-medium">Tipo:</span>{" "}
                         {orderItemHook.existingItem.type}
                       </div>
+                      {orderItemHook.existingItem.variant && (
+                        <div>
+                          <span className="font-medium">Variante:</span>{" "}
+                          {orderItemHook.existingItem.variant}
+                        </div>
+                      )}
                       <div>
                         <span className="font-medium">Cantidad:</span>{" "}
                         {orderItemHook.existingItem.quantity}
@@ -281,7 +320,8 @@ export function StoreCellSheet({ open, onOpenChange, data }: Props) {
                 ) : orderItemHook.isPendingOrder ? (
                   <div className="space-y-3">
                     {orderItemHook.showAddForm ? (
-                      <div className="space-y-2">
+                      <div className="space-y-3">
+                        {/* Selector de tipo */}
                         <div className="grid gap-1">
                           <Label htmlFor="item-type">Tipo</Label>
                           <Select
@@ -303,31 +343,121 @@ export function StoreCellSheet({ open, onOpenChange, data }: Props) {
                             </SelectContent>
                           </Select>
                         </div>
-                        <div className="grid gap-1">
-                          <Label htmlFor="item-quantity">Cantidad</Label>
-                          <Input
-                            id="item-quantity"
-                            type="number"
-                            min={1}
-                            value={orderItemHook.quantity}
-                            onChange={(e) =>
-                              orderItemHook.setQuantity(Number(e.target.value))
-                            }
-                          />
-                        </div>
+
+                        {/* Modo BULTO: solo cantidad */}
+                        {orderItemHook.type === OrderItemType.BULTO && (
+                          <div className="grid gap-1">
+                            <Label htmlFor="item-quantity">Cantidad</Label>
+                            <Input
+                              id="item-quantity"
+                              type="number"
+                              min={1}
+                              value={orderItemHook.quantity}
+                              onChange={(e) =>
+                                orderItemHook.setQuantity(Number(e.target.value))
+                              }
+                            />
+                          </div>
+                        )}
+
+                        {/* Modo UNIDAD: matriz de variantes */}
+                        {orderItemHook.type === OrderItemType.UNIDAD && (
+                          <div className="space-y-3">
+                            {orderItemHook.variantsQuery.isLoading ? (
+                              <div className="text-sm text-muted-foreground text-center py-2">
+                                Cargando variantes...
+                              </div>
+                            ) : orderItemHook.parsedVariants.length === 0 ? (
+                              <div className="text-sm text-destructive text-center py-2">
+                                No hay variantes disponibles para este producto
+                              </div>
+                            ) : (
+                              <div className="space-y-2">
+                                <Label>Variantes y cantidades</Label>
+                                {orderItemHook.variantMatrix.map((row, index) => (
+                                  <div key={row.id} className="flex gap-2 items-start">
+                                    <div className="flex-1">
+                                      <Select
+                                        value={row.variant}
+                                        onValueChange={(v) =>
+                                          orderItemHook.updateVariantRow(row.id, { variant: v })
+                                        }
+                                      >
+                                        <SelectTrigger className="w-full">
+                                          <SelectValue placeholder="Talla" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          {orderItemHook.parsedVariants.map((v) => (
+                                            <SelectItem 
+                                              key={v} 
+                                              value={v}
+                                              disabled={!orderItemHook.isVariantAvailable(v, row.id)}
+                                            >
+                                              {v}
+                                            </SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                    <div className="w-20">
+                                      <Input
+                                        type="number"
+                                        min={1}
+                                        value={row.quantity}
+                                        onChange={(e) =>
+                                          orderItemHook.updateVariantRow(row.id, { quantity: Number(e.target.value) })
+                                        }
+                                      />
+                                    </div>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => orderItemHook.removeVariantRow(row.id)}
+                                      disabled={orderItemHook.variantMatrix.length <= 1}
+                                      className="text-destructive"
+                                    >
+                                      ×
+                                    </Button>
+                                  </div>
+                                ))}
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={orderItemHook.addVariantRow}
+                                  disabled={orderItemHook.variantMatrix.length >= orderItemHook.parsedVariants.length || !orderItemHook.parsedVariants.some(v => orderItemHook.isVariantAvailable(v))}
+                                  className="w-full"
+                                >
+                                  + Agregar talla
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
                         <div className="flex gap-2">
                           <Button
                             onClick={orderItemHook.handleAddItem}
-                            disabled={orderItemHook.createItemMutation.isPending}
+                            disabled={
+                              orderItemHook.createItemMutation.isPending ||
+                              (orderItemHook.type === OrderItemType.UNIDAD && 
+                               orderItemHook.parsedVariants.length === 0)
+                            }
                             className="flex-1"
                           >
                             {orderItemHook.createItemMutation.isPending
                               ? "Agregando..."
-                              : "Agregar a Orden"}
+                              : orderItemHook.type === OrderItemType.UNIDAD
+                                ? "Agregar variantes a Orden"
+                                : "Agregar a Orden"}
                           </Button>
                           <Button
                             variant="outline"
-                            onClick={() => orderItemHook.setShowAddForm(false)}
+                            onClick={() => {
+                              orderItemHook.setShowAddForm(false);
+                              orderItemHook.resetVariantMatrix();
+                            }}
                           >
                             Cancelar
                           </Button>

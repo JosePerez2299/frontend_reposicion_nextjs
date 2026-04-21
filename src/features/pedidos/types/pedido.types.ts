@@ -41,6 +41,7 @@ export type OrderItem = {
   store_id: string;
   type: OrderItemType;
   quantity: number;
+  variant?: string;
   created_at: string;
   updated_at: string;
 };
@@ -51,6 +52,7 @@ export type CreateOrderItemInput = {
   store_id: string;
   type: OrderItemType;
   quantity: number;
+  variant?: string;
 };
 
 export type UpdateOrderItemInput = {
@@ -58,5 +60,6 @@ export type UpdateOrderItemInput = {
   store_id?: string;
   type?: OrderItemType;
   quantity?: number;
+  variant?: string;
   item_id: number;
 };

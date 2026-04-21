@@ -1,6 +1,13 @@
 import { api } from "@/config/api";
 import  { type Product, ProductSearchSchema } from "@/schemas/entities/product.schema";
 
+export async function fetchProductVariants(productCode: string): Promise<string[]> {
+  const data = await api.get<string[]>("/products/variants", {
+    product_code: productCode,
+  });
+  return data;
+}
+
 export async function fetchProductosByName(
   name: string,
   categoryId: string,
