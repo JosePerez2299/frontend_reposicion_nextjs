@@ -21,6 +21,7 @@ import {
 } from "@/features/pedidos/queries/pedidos.queries";
 import OrderStatusBadge from "./OrderStatusBadge";
 import type { OrderItem } from "@/features/pedidos/types/pedido.types";
+import { OrderItemType } from "@/features/pedidos/types/pedido.types";
 
 type Props = {
   open: boolean;
@@ -183,6 +184,14 @@ export function OrderDetailModal({ open, onOpenChange, order }: Props) {
                               {it.type ?? "-"}
                             </span>
                           </div>
+                          {it.type === OrderItemType.UNIDAD && it.variant ? (
+                            <div>
+                              Variante:{" "}
+                              <span className="font-semibold text-foreground">
+                                {it.variant}
+                              </span>
+                            </div>
+                          ) : null}
                         </div>
 
                         {isPending && (
