@@ -2,6 +2,7 @@ import { useMemo, useState, useCallback, useEffect } from "react";
 import { useOrderItemsQuery, useCreateOrderItemMutation, useUpdateOrderItemMutation, useDeleteOrderItemMutation } from "@/features/pedidos/queries/pedidos.queries";
 import { useAnalisisStore } from "@/stores/resposicion-analisis.store";
 import type { OrderItemResponse } from "@/services/pedidos.service";
+import { OrderItemType } from "@/features/pedidos/types/pedido.types";
 
 type StoreCellSheetData = {
   product_id: string;
@@ -52,14 +53,17 @@ export function useStoreCellSheetOrderItem(
   const [showAddForm, setShowAddForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [quantity, setQuantity] = useState<number>(() => (sheetData && sheetData.qty_stock > 0 ? sheetData.qty_stock : 1));
+  const [type, setType] = useState<OrderItemType>(OrderItemType.UNIDAD);
 
   // Sync quantity when sheet opens or when sheetData/existingItem changes.
   useEffect(() => {
     if (options?.isOpen) {
       if (existingItem) {
         setQuantity(existingItem.quantity);
+        setType((existingItem.type as OrderItemType) ?? OrderItemType.UNIDAD);
       } else if (sheetData) {
         setQuantity(sheetData.qty_stock > 0 ? sheetData.qty_stock : 1);
+        setType(OrderItemType.UNIDAD);
       }
     }
   }, [options?.isOpen, existingItem, sheetData]);
@@ -75,6 +79,7 @@ export function useStoreCellSheetOrderItem(
         order_id: selectedOrder.id,
         product_id: productId,
         store_id: storeId,
+        type,
         quantity,
       });
       setShowAddForm(false);
@@ -82,7 +87,7 @@ export function useStoreCellSheetOrderItem(
     } catch (error) {
       console.error("Error adding item to order:", error);
     }
-  }, [selectedOrder, productId, storeId, quantity, createItemMutation, refetch]);
+  }, [selectedOrder, productId, storeId, quantity, type, createItemMutation, refetch]);
 
   const handleUpdateItem = useCallback(async () => {
     if (!existingItem || !selectedOrder) return;
@@ -90,6 +95,7 @@ export function useStoreCellSheetOrderItem(
     try {
       await updateItemMutation.mutateAsync({
         item_id: existingItem.id,
+        type,
         quantity,
       });
       setShowEditForm(false);
@@ -97,7 +103,7 @@ export function useStoreCellSheetOrderItem(
     } catch (error) {
       console.error("Error updating item:", error);
     }
-  }, [existingItem, selectedOrder, quantity, updateItemMutation, refetch]);
+  }, [existingItem, selectedOrder, quantity, type, updateItemMutation, refetch]);
 
   const handleDeleteItem = useCallback(async () => {
     if (!existingItem) return;
@@ -113,7 +119,10 @@ export function useStoreCellSheetOrderItem(
   }, [existingItem, deleteItemMutation, refetch]);
 
   const openEditForm = useCallback(() => {
-    if (existingItem) setQuantity(existingItem.quantity);
+    if (existingItem) {
+      setQuantity(existingItem.quantity);
+      setType((existingItem.type as OrderItemType) ?? OrderItemType.UNIDAD);
+    }
     setShowEditForm(true);
   }, [existingItem]);
 
@@ -131,6 +140,8 @@ export function useStoreCellSheetOrderItem(
     setShowEditForm,
     quantity,
     setQuantity,
+    type,
+    setType,
     createItemMutation,
     handleAddItem,
     updateItemMutation,

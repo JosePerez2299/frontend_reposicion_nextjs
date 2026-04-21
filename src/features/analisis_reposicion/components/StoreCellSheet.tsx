@@ -10,13 +10,20 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { DeleteConfirmDialog } from "@/components/DeleteConfirmDialog";
 import {
   useOrdersQuery,
   useCreateOrderMutation,
 } from "@/features/pedidos/queries/pedidos.queries";
 import { useAnalisisStore } from "@/stores/resposicion-analisis.store";
-import { OrderStatus } from "@/features/pedidos/types/pedido.types";
+import { OrderItemType, OrderStatus } from "@/features/pedidos/types/pedido.types";
 import { useStoreCellSheetOrderItem } from "@/features/analisis_reposicion/hooks/useStoreCellSheetOrderItem";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -169,6 +176,27 @@ export function StoreCellSheet({ open, onOpenChange, data }: Props) {
                   orderItemHook.showEditForm ? (
                     <div className="space-y-2">
                       <div className="grid gap-1">
+                        <Label htmlFor="item-type">Tipo</Label>
+                        <Select
+                          value={orderItemHook.type}
+                          onValueChange={(v) =>
+                            orderItemHook.setType(v as OrderItemType)
+                          }
+                        >
+                          <SelectTrigger id="item-type" className="w-full">
+                            <SelectValue placeholder="Seleccionar" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value={OrderItemType.UNIDAD}>
+                              Unidad
+                            </SelectItem>
+                            <SelectItem value={OrderItemType.BULTO}>
+                              Bulto
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="grid gap-1">
                         <Label htmlFor="item-quantity">Cantidad</Label>
                         <Input
                           id="item-quantity"
@@ -214,6 +242,10 @@ export function StoreCellSheet({ open, onOpenChange, data }: Props) {
                     <div className="space-y-2 text-sm">
                       <div className="font-semibold text-green-600">✓ Item ya agregado</div>
                       <div>
+                        <span className="font-medium">Tipo:</span>{" "}
+                        {orderItemHook.existingItem.type}
+                      </div>
+                      <div>
                         <span className="font-medium">Cantidad:</span>{" "}
                         {orderItemHook.existingItem.quantity}
                       </div>
@@ -223,7 +255,7 @@ export function StoreCellSheet({ open, onOpenChange, data }: Props) {
                           variant="outline"
                           onClick={orderItemHook.openEditForm}
                         >
-                          Editar Cantidad
+                          Editar
                         </Button>
                         <Button
                           variant="destructive"
@@ -250,6 +282,27 @@ export function StoreCellSheet({ open, onOpenChange, data }: Props) {
                   <div className="space-y-3">
                     {orderItemHook.showAddForm ? (
                       <div className="space-y-2">
+                        <div className="grid gap-1">
+                          <Label htmlFor="item-type">Tipo</Label>
+                          <Select
+                            value={orderItemHook.type}
+                            onValueChange={(v) =>
+                              orderItemHook.setType(v as OrderItemType)
+                            }
+                          >
+                            <SelectTrigger id="item-type" className="w-full">
+                              <SelectValue placeholder="Seleccionar" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value={OrderItemType.UNIDAD}>
+                                Unidad
+                              </SelectItem>
+                              <SelectItem value={OrderItemType.BULTO}>
+                                Bulto
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                         <div className="grid gap-1">
                           <Label htmlFor="item-quantity">Cantidad</Label>
                           <Input

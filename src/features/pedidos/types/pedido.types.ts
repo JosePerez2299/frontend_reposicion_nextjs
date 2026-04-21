@@ -7,6 +7,11 @@ export enum OrderStatus {
   COMPLETED = "completed",
 }
 
+export enum OrderItemType {
+  BULTO = "BULTO",
+  UNIDAD = "UNIDAD",
+}
+
 export type CreateOrderInput = {
   status?: OrderStatus;
   description?: string;
@@ -34,6 +39,7 @@ export type OrderItem = {
   order_id: number;
   product_id: string;
   store_id: string;
+  type: OrderItemType;
   quantity: number;
   created_at: string;
   updated_at: string;
@@ -43,12 +49,14 @@ export type CreateOrderItemInput = {
   order_id: number;
   product_id: string;
   store_id: string;
+  type: OrderItemType;
   quantity: number;
 };
 
 export type UpdateOrderItemInput = {
   product_id?: string;
   store_id?: string;
+  type?: OrderItemType;
   quantity?: number;
   item_id: number;
 };

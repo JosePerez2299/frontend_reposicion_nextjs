@@ -171,10 +171,18 @@ export function OrderDetailModal({ open, onOpenChange, order }: Props) {
                       /* ── Modo lectura ── */
                       <>
                         <div className="text-sm text-muted-foreground">
-                          Cantidad:{" "}
-                          <span className="font-semibold text-foreground">
-                            {it.quantity}
-                          </span>
+                          <div>
+                            Cantidad:{" "}
+                            <span className="font-semibold text-foreground">
+                              {it.quantity}
+                            </span>
+                          </div>
+                          <div>
+                            Modalidad:{" "}
+                            <span className="font-semibold text-foreground">
+                              {it.type ?? "-"}
+                            </span>
+                          </div>
                         </div>
 
                         {isPending && (
