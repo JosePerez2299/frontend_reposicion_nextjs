@@ -880,14 +880,20 @@ export function StoreCellSheet({ open, onOpenChange, data }: Props) {
     setSelectedOrder(newOrder as Order);
   };
 
-  const productLabel = data ? `${data.product_name} · ${data.store_name}` : "Producto";
-
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent>
         <SheetHeader>
           <SheetTitle>
-            {productLabel}
+            {data ? (
+              <div>
+                <div>{data.product_name}</div>
+                <div className="text-sm text-muted-foreground">{data.store_name}</div>
+              </div>
+            ) : (
+              "Producto"
+            )}
+       
           </SheetTitle>
           <SheetDescription>
             Podés crear/usar como máximo 2 pedidos: uno por unidad y uno por bulto.
