@@ -11,6 +11,7 @@ const OrderItemResponseSchema = z.object({
   type: z.string(),
   quantity: z.number(),
   variant: z.string().nullable().optional(),
+  unit_size: z.number().nullable().optional(),
   created_at: z.string(),
   updated_at: z.string(),
 });
@@ -73,10 +74,11 @@ export async function createOrderItem(input: CreateOrderItemInput): Promise<Orde
 }
 
 export async function updateOrderItem(itemId: number, input: Partial<UpdateOrderItemInput>): Promise<OrderItemResponse> {
-  const payload: Partial<Pick<UpdateOrderItemInput, "quantity" | "type" | "variant">> = {
+  const payload: Partial<Pick<UpdateOrderItemInput, "quantity" | "type" | "variant" | "unit_size">> = {
     quantity: input.quantity,
     type: input.type,
     variant: input.variant,
+    unit_size: input.unit_size,
   };
   const data = await api.put<OrderItemResponse>(`/orders/items/${itemId}`, payload);
   return data;

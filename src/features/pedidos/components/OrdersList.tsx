@@ -5,7 +5,7 @@ import { Order, OrderStatus } from "@/features/pedidos/types/pedido.types";
 import OrderStatusBadge from "./OrderStatusBadge";
 import OrderDetailModal from "./OrderDetailModal";
 import { Button } from "@/components/ui/button";
-import { ArrowUpRight, Clock, Hash, AlignLeft, FileDown } from "lucide-react";
+import { ArrowUpRight, Clock, Hash, AlignLeft, FileDown, Loader2 } from "lucide-react";
 import { useUpdateOrderMutation, useApproveOrderMutation, useRejectOrderMutation, useCancelOrderMutation, useCompleteOrderMutation } from "@/features/pedidos/queries/pedidos.queries";
 import { OrderStatusConfirmDialog } from "@/features/pedidos/components/OrderStatusConfirmDialog";
 import { toast } from "sonner";
@@ -66,10 +66,23 @@ function OrderRow({ order }: { order: Order }) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingNextStatus, setPendingNextStatus] = useState<OrderStatus | null>(null);
   const [statusError, setStatusError] = useState<string | null>(null);
+  const [downloadingOrderId, setDownloadingOrderId] = useState<number | null>(null);
 
   const requestStatusChange = (next: OrderStatus) => {
     setPendingNextStatus(next);
     setConfirmOpen(true);
+  };
+
+  const handleDownload = async () => {
+    setDownloadingOrderId(order.id);
+
+    try {
+      await downloadPdf(order.id);
+    } catch (error: any) {
+      toast.error(error?.message || "Ocurrió un error al descargar el PDF");
+    } finally {
+      setDownloadingOrderId(null);
+    }
   };
 
   const handleStatusConfirm = async () => {
@@ -194,10 +207,18 @@ function OrderRow({ order }: { order: Order }) {
                   size="sm"
                   variant="ghost"
                   className="h-7 gap-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-muted px-2.5"
-                  onClick={() => downloadPdf(order.id)}
+                  onClick={handleDownload}
+                  disabled={downloadingOrderId === order.id}
                   title="Descargar PDF"
                 >
-                  <FileDown className="w-3.5 h-3.5" />
+                  {downloadingOrderId === order.id ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      Descargando...
+                    </>
+                  ) : (
+                    <FileDown className="w-3.5 h-3.5" />
+                  )}
                 </Button>
               </div>
             </div>

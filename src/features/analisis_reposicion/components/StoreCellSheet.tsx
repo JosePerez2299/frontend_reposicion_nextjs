@@ -317,13 +317,16 @@ function ItemEditorBulto({
   const [showEditForm, setShowEditForm] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [quantity, setQuantity] = useState<number>(1);
+  const [unitSize, setUnitSize] = useState<number>(1);
 
   useEffect(() => {
     if (!enabled) return;
     if (bultoItem) {
       setQuantity(bultoItem.quantity);
+      setUnitSize(bultoItem.unit_size ?? 1);
     } else {
       setQuantity(1);
+      setUnitSize(1);
     }
   }, [enabled, bultoItem, sheetData]);
 
@@ -336,12 +339,14 @@ function ItemEditorBulto({
   const handleAdd = async () => {
     if (!order || !sheetData) return;
     if (!quantity || quantity <= 0) return;
+    if (!unitSize || unitSize <= 0) return;
     await createItemMutation.mutateAsync({
       order_id: order.id,
       product_id: sheetData.product_id,
       store_id: sheetData.store_id,
       type: OrderItemType.BULTO,
       quantity,
+      unit_size: unitSize,
     });
     setShowAddForm(false);
     await refetch();
@@ -349,10 +354,12 @@ function ItemEditorBulto({
 
   const handleUpdate = async () => {
     if (!bultoItem) return;
+    if (!unitSize || unitSize <= 0) return;
     await updateItemMutation.mutateAsync({
       item_id: bultoItem.id,
       type: OrderItemType.BULTO,
       quantity,
+      unit_size: unitSize,
     });
     setShowEditForm(false);
     await refetch();
@@ -391,6 +398,16 @@ function ItemEditorBulto({
                 onChange={(e) => setQuantity(Number(e.target.value))}
               />
             </div>
+            <div className="grid gap-1">
+              <Label htmlFor="bulto-unit-size">Unidad de medida</Label>
+              <Input
+                id="bulto-unit-size"
+                type="number"
+                min={1}
+                value={unitSize}
+                onChange={(e) => setUnitSize(Number(e.target.value))}
+              />
+            </div>
             <div className="flex gap-2">
               <Button onClick={handleUpdate} disabled={updateItemMutation.isPending} className="flex-1">
                 {updateItemMutation.isPending ? "Actualizando..." : "Actualizar"}
@@ -415,6 +432,9 @@ function ItemEditorBulto({
             <div className="font-semibold text-green-600">✓ Item ya agregado</div>
             <div>
               <span className="font-medium">Cantidad:</span> {bultoItem.quantity}
+            </div>
+            <div>
+              <span className="font-medium">Unidad de medida:</span> {bultoItem.unit_size ?? "-"}
             </div>
             <div className="flex gap-2 pt-1">
               <Button className="flex-1" variant="outline" onClick={() => setShowEditForm(true)}>
@@ -448,6 +468,16 @@ function ItemEditorBulto({
               min={1}
               value={quantity}
               onChange={(e) => setQuantity(Number(e.target.value))}
+            />
+          </div>
+          <div className="grid gap-1">
+            <Label htmlFor="bulto-unit-size-add">Unidad de medida</Label>
+            <Input
+              id="bulto-unit-size-add"
+              type="number"
+              min={1}
+              value={unitSize}
+              onChange={(e) => setUnitSize(Number(e.target.value))}
             />
           </div>
           <div className="flex gap-2">

@@ -11,7 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DeleteConfirmDialog } from "@/components/DeleteConfirmDialog";
 import { useState } from "react";
-import { FileDown } from "lucide-react";
+import { AlertTriangle, FileDown, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { downloadPdf } from "@/services/pedidos.service";
 
 import {
@@ -46,8 +47,11 @@ export function OrderDetailModal({ open, onOpenChange, order }: Props) {
   const [editingQty, setEditingQty] = useState<number>(1);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
+  const [downloadState, setDownloadState] = useState<"idle" | "loading" | "error">("idle");
+  const [downloadError, setDownloadError] = useState<string | null>(null);
 
   const isPending = order?.status === "pending";
+  const isDownloading = downloadState === "loading";
 
   const startEdit = (it: OrderItem) => {
     setEditingId(it.id);
@@ -83,10 +87,31 @@ export function OrderDetailModal({ open, onOpenChange, order }: Props) {
     setDeleteConfirmOpen(true);
   };
 
+  const handleDownload = async () => {
+    if (!order?.id) return;
+    setDownloadError(null);
+    setDownloadState("loading");
+
+    let failed = false;
+    try {
+      await downloadPdf(order.id);
+    } catch (error: any) {
+      failed = true;
+      const message = error?.message || "Ocurrió un error al descargar el PDF";
+      setDownloadError(message);
+      setDownloadState("error");
+      toast.error(message);
+    } finally {
+      if (!failed) {
+        setDownloadState("idle");
+      }
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {/* sm:max-w-lg para un ancho cómodo en desktop */}
-      <DialogContent className="flex flex-col gap-0 p-0 sm:max-w-lg max-h-[90vh]">
+      <DialogContent className="relative flex flex-col gap-0 p-0 sm:max-w-lg max-h-[90vh]">
 
         {/* ── Header ── */}
         <div className="px-6 pt-6 pb-4 border-b">
@@ -102,6 +127,31 @@ export function OrderDetailModal({ open, onOpenChange, order }: Props) {
             <OrderStatusBadge status={order?.status} />
           </div>
         </div>
+
+        {(downloadState === "loading" || downloadState === "error") && (
+          <div className="absolute inset-0 z-20 rounded-2xl bg-background/95 backdrop-blur-sm border border-border flex items-center justify-center p-6">
+            <div className="text-center max-w-xs space-y-3">
+              {downloadState === "loading" ? (
+                <>
+                  <Loader2 className="mx-auto h-10 w-10 animate-spin text-primary" />
+                  <p className="text-base font-semibold">Generando PDF...</p>
+                  <p className="text-sm text-muted-foreground">
+                    Espera mientras preparamos la descarga.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+                    <AlertTriangle className="h-6 w-6" />
+                  </div>
+                  <p className="text-base font-semibold">Error al descargar</p>
+                  <p className="text-sm text-muted-foreground">{downloadError}</p>
+                  <Button variant="outline" onClick={() => setDownloadState("idle")}>Cerrar</Button>
+                </>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* ── Items (scrolleable) ── */}
         <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0">
@@ -183,8 +233,14 @@ export function OrderDetailModal({ open, onOpenChange, order }: Props) {
                             <span className="font-semibold text-foreground">
                               {it.type ?? "-"}
                             </span>
-                          </div>
-                          {it.type === OrderItemType.UNIDAD && it.variant ? (
+                          </div>                          {it.type === OrderItemType.BULTO ? (
+                            <div>
+                              Unidad de medida: {" "}
+                              <span className="font-semibold text-foreground">
+                                {it.unit_size ?? "-"}
+                              </span>
+                            </div>
+                          ) : null}                          {it.type === OrderItemType.UNIDAD && it.variant ? (
                             <div>
                               Variante:{" "}
                               <span className="font-semibold text-foreground">
@@ -234,10 +290,20 @@ export function OrderDetailModal({ open, onOpenChange, order }: Props) {
             <Button
               variant="outline"
               className="w-full sm:w-auto gap-2"
-              onClick={() => downloadPdf(order?.id)}
+              onClick={handleDownload}
+              disabled={isDownloading}
             >
-              <FileDown className="w-4 h-4" />
-              Descargar PDF
+              {isDownloading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Descargando...
+                </>
+              ) : (
+                <>
+                  <FileDown className="w-4 h-4" />
+                  Descargar PDF
+                </>
+              )}
             </Button>
             <DialogClose asChild>
               <Button variant="outline" className="w-full sm:w-auto">

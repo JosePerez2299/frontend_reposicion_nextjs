@@ -42,6 +42,7 @@ export type OrderItem = {
   type: OrderItemType;
   quantity: number;
   variant?: string;
+  unit_size?: number;
   created_at: string;
   updated_at: string;
 };
@@ -53,6 +54,7 @@ export type CreateOrderItemInput = {
   type: OrderItemType;
   quantity: number;
   variant?: string;
+  unit_size?: number;
 };
 
 export type UpdateOrderItemInput = {
@@ -61,5 +63,6 @@ export type UpdateOrderItemInput = {
   type?: OrderItemType;
   quantity?: number;
   variant?: string;
+  unit_size?: number;
   item_id: number;
 };

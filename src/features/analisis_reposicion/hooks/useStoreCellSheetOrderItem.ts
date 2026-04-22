@@ -59,6 +59,7 @@ export function useStoreCellSheetOrderItem(
   const [showAddForm, setShowAddForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [quantity, setQuantity] = useState<number>(() => (sheetData && sheetData.qty_stock > 0 ? sheetData.qty_stock : 1));
+  const [unitSize, setUnitSize] = useState<number>(1);
   const [type, setType] = useState<OrderItemType>(OrderItemType.BULTO);
   const [variant, setVariant] = useState<string>("");
   const [variantMatrix, setVariantMatrix] = useState<VariantRow[]>([]);
@@ -84,10 +85,12 @@ export function useStoreCellSheetOrderItem(
     if (options?.isOpen) {
       if (existingItem) {
         setQuantity(existingItem.quantity);
+        setUnitSize(existingItem.unit_size ?? 1);
         setType((existingItem.type as OrderItemType) ?? OrderItemType.BULTO);
         setVariant(existingItem.variant ?? "");
       } else if (sheetData) {
         setQuantity(sheetData.qty_stock > 0 ? sheetData.qty_stock : 1);
+        setUnitSize(1);
         setType(OrderItemType.BULTO);
         setVariant("");
       }
@@ -152,12 +155,14 @@ export function useStoreCellSheetOrderItem(
     try {
       if (type === OrderItemType.BULTO) {
         if (!quantity) return;
+        if (!unitSize || unitSize <= 0) return;
         await createItemMutation.mutateAsync({
           order_id: selectedOrder.id,
           product_id: productId,
           store_id: storeId,
           type,
           quantity,
+          unit_size: unitSize,
         });
       } else {
         const validRows = variantMatrix.filter(row => row.quantity > 0);
@@ -194,6 +199,7 @@ export function useStoreCellSheetOrderItem(
         type,
         quantity,
         variant: type === OrderItemType.UNIDAD ? variant || undefined : undefined,
+        unit_size: type === OrderItemType.BULTO ? unitSize : undefined,
       });
       setShowEditForm(false);
       refetch();
