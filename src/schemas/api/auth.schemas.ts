@@ -4,7 +4,7 @@ import { RolesEnum } from "@/types/auth.types";
 // ── Request schemas ──────────────────────────────────────────────
 
 export const LoginRequestSchema = z.object({
-  email: z.string().email("Email inválido"),
+  username: z.string().min(1, "El usuario es requerido"),
   password: z.string().min(1, "La contraseña es requerida"),
 });
 
