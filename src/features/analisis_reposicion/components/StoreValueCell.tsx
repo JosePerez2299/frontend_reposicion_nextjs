@@ -7,10 +7,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { StoreCellSheet } from "./StoreCellSheet";
 import { StoreCellModal } from "./StoreCellModal";
 import { Check, Plus } from "lucide-react";
 import { getRotationStyle, getStockIndicatorClass } from "@/lib/utils";
+import { useAnalisisStore } from "@/stores/resposicion-analisis.store";
 
 type Props = {
   viewMode: "compact" | "detailed";
@@ -40,8 +40,8 @@ export function StoreValueCell({
   hasOrder,
 }: Props) {
   const [tooltipOpen, setTooltipOpen] = useState(false);
-  const [dialogOpen, setDialogOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const openStoreCellSheet = useAnalisisStore((s) => s.openStoreCellSheet);
 
   const rotationColors = getRotationStyle(rotation);
   const stockIndicatorClass = getStockIndicatorClass(qty_stock);
@@ -51,12 +51,20 @@ export function StoreValueCell({
     e.stopPropagation();
     setTooltipOpen(false);
     setModalOpen(false);
-    setDialogOpen(true);
+    openStoreCellSheet({
+      product_id: productId,
+      product_name: productName,
+      store_id: storeId,
+      store_name: storeName,
+      rotation_pct: pct,
+      rotation_text_class: rotationColors.textClass,
+      qty_stock,
+      qty_sold,
+    });
   };
 
   const handleOpenModal = () => {
     setTooltipOpen(false);
-    setDialogOpen(false);
     setModalOpen(true);
   };
 
@@ -139,23 +147,6 @@ export function StoreValueCell({
           </div>
         </TooltipContent>
       </Tooltip>
-      
-      {dialogOpen && (
-        <StoreCellSheet
-          open={dialogOpen}
-          onOpenChange={setDialogOpen}
-          data={{
-            product_id: productId,
-            product_name: productName,
-            store_id: storeId,
-            store_name: storeName,
-            rotation_pct: pct,
-            rotation_text_class: rotationColors.textClass,
-            qty_stock,
-            qty_sold,
-          }}
-        />
-      )}
 
       {modalOpen && (
         <StoreCellModal

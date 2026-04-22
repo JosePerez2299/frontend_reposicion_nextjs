@@ -24,6 +24,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { StoreValueCell } from "@/features/analisis_reposicion/components/StoreValueCell";
+import { StoreCellSheet } from "@/features/analisis_reposicion/components/StoreCellSheet";
 import { getCompleteLegendConfig } from "@/lib/utils";
 import { useOrderItemsByOrderQuery } from "@/features/pedidos/queries/pedidos.queries";
 import type { OrderItemResponse } from "@/services/pedidos.service";
@@ -188,7 +189,14 @@ interface AnalisisTableProps {
 }
 
 export function AnalisisTable({ data }: AnalisisTableProps) {
-  const { viewMode, setPage, selectedOrder } = useAnalisisStore();
+  const {
+    viewMode,
+    setPage,
+    selectedOrder,
+    storeCellSheetOpen,
+    storeCellSheetData,
+    setStoreCellSheetOpen,
+  } = useAnalisisStore();
 
   const { data: orderItems } = useOrderItemsByOrderQuery(selectedOrder?.id, {
     enabled: !!selectedOrder?.id,
@@ -335,6 +343,8 @@ export function AnalisisTable({ data }: AnalisisTableProps) {
           </TableBody>
         </Table>
       </div>
+
+      <StoreCellSheet open={storeCellSheetOpen} onOpenChange={setStoreCellSheetOpen} data={storeCellSheetData} />
 
       {/* Leyendas — fijas abajo, no scrolleables */}
       <div className="flex-none px-1 pt-2">

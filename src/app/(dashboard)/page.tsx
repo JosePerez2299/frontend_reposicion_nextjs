@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useAuthStore } from "@/stores/auth.store";
 import {
   AlertTriangle,
   ClipboardList,
@@ -37,7 +38,7 @@ import {
 
 const kpis = [
   {
-    label: "Stock Crítico",
+    label: "Modelos Críticos",
     value: "128",
     icon: AlertTriangle,
     badge: { text: "Urgente", variant: "destructive" as const },
@@ -45,15 +46,15 @@ const kpis = [
     bg: "bg-stock-none-bg",
   },
   {
-    label: "Pedidos Pendientes",
+    label: "Pedidos Activos",
     value: "3",
     icon: ClipboardList,
-    badge: { text: "Activos", variant: "default" as const },
+    badge: { text: "En proceso", variant: "default" as const },
     color: "text-primary",
     bg: "bg-primary/10",
   },
   {
-    label: "Rotación Buena",
+    label: "Tallas Buenas",
     value: "842",
     icon: RefreshCw,
     badge: { text: "+12%", variant: "secondary" as const },
@@ -73,19 +74,19 @@ const kpis = [
 const quickActions = [
   {
     label: "Análisis de Ventas",
-    description: "Explora métricas y tendencias de venta por producto",
+    description: "Explora métricas y tendencias de venta por modelo y talla",
     href: "/reposicion",
     icon: BarChart2,
   },
   {
-    label: "Productos Críticos",
-    description: "Productos con stock bajo que requieren reposición urgente",
+    label: "Modelos Críticos",
+    description: "Calzado con stock bajo que requiere reposición urgente",
     href: "/reposicion/criticos",
     icon: AlertTriangle,
   },
   {
     label: "Mis Pedidos",
-    description: "Gestiona y haz seguimiento de tus pedidos activos",
+    description: "Gestiona y haz seguimiento de tus pedidos de calzado",
     href: "/pedidos",
     icon: ClipboardList,
   },
@@ -108,36 +109,36 @@ const branches = [
 
 const recentActivity = [
   {
-    product: "Aceite Motor 5W-30",
-    sku: "ACE-5W30-1L",
+    product: "Zapatilla Running Air Max",
+    sku: "ZAP-RUN-AM42",
     stock: 12,
     rotation: "Alta",
     status: "Crítico",
   },
   {
-    product: "Filtro de Aire Universal",
-    sku: "FIL-AIR-UNI",
+    product: "Botín Cuero Clásico Negro",
+    sku: "BOT-CUE-CLN",
     stock: 45,
     rotation: "Media",
     status: "Normal",
   },
   {
-    product: "Líquido Frenos DOT4",
-    sku: "LIQ-FRE-D4",
+    product: "Sandalia Verano Beige",
+    sku: "SAN-VER-BG38",
     stock: 3,
     rotation: "Alta",
     status: "Crítico",
   },
   {
-    product: "Bujía de Encendido Platinum",
-    sku: "BUJ-ENC-PT",
+    product: "Tennis Casual Blanco",
+    sku: "TEN-CAS-BLC",
     stock: 120,
     rotation: "Baja",
     status: "Sobrestock",
   },
   {
-    product: "Amortiguador Delantero",
-    sku: "AMO-DEL-STD",
+    product: "Zapato Formal Oxford",
+    sku: "ZAP-FOR-OX41",
     stock: 28,
     rotation: "Media",
     status: "Normal",
@@ -146,7 +147,7 @@ const recentActivity = [
 
 const alerts = [
   {
-    title: "3 productos sin stock en Sucursal Norte",
+    title: "3 modelos sin stock en Sucursal Norte",
     severity: "critical",
     time: "Hace 15 min",
   },
@@ -156,12 +157,12 @@ const alerts = [
     time: "Hace 1 hora",
   },
   {
-    title: "Rotación baja detectada en 18 SKUs",
+    title: "Rotación baja detectada en 18 tallas",
     severity: "info",
     time: "Hace 3 horas",
   },
   {
-    title: "Recepción de mercancía programada mañana 08:00",
+    title: "Recepción de nueva colección programada mañana 08:00",
     severity: "info",
     time: "Hace 5 horas",
   },
@@ -190,13 +191,15 @@ function formatCurrency(n: number) {
 }
 
 export default function Home() {
+  const user = useAuthStore((state) => state.user);
+
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6 overflow-auto">
       {/* ── Header ── */}
       <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">
-            Bienvenido, José
+            Bienvenido, {user?.nombre || "Usuario"}
           </h1>
           <p className="text-sm text-muted-foreground">
             Resumen del sistema — 22 de abril, 2026
@@ -204,7 +207,7 @@ export default function Home() {
         </div>
         <Badge variant="outline" className="w-fit mt-1 sm:mt-0">
           <Warehouse size={12} />
-          Rol: Reposición
+          Rol: {user?.role === "reposicion" ? "Reposición" : user?.role || "Desconocido"}
         </Badge>
       </div>
 
@@ -311,15 +314,15 @@ export default function Home() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Package size={16} strokeWidth={1.5} className="text-primary" />
-                Últimos productos analizados
+                Últimos modelos analizados
               </CardTitle>
-              <CardDescription>Productos con actividad reciente en el sistema</CardDescription>
+              <CardDescription>Calzado con actividad reciente en el sistema</CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Producto</TableHead>
+                    <TableHead>Modelo</TableHead>
                     <TableHead>SKU</TableHead>
                     <TableHead className="text-right">Stock</TableHead>
                     <TableHead>Rotación</TableHead>

@@ -880,7 +880,7 @@ export function StoreCellSheet({ open, onOpenChange, data }: Props) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent>
+      <SheetContent className="overflow-auto">
         <SheetHeader>
           <SheetTitle>
             {data ? (
@@ -898,7 +898,7 @@ export function StoreCellSheet({ open, onOpenChange, data }: Props) {
           </SheetDescription>
         </SheetHeader>
 
-        <div className="grid flex-1 auto-rows-min gap-6 px-4">
+        <div className="grid flex-1 auto-rows-min gap-6 px-4 overflow-auto">
           <div className="space-y-4">
             <OrderPicker
               title="Orden"

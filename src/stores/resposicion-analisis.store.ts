@@ -2,10 +2,23 @@ import { create } from "zustand";
 import { AnalisisFilters } from "@/schemas/api/analisis.schemas";
 import type { Order } from "@/features/pedidos/types/pedido.types";
 
+export type StoreCellSheetData = {
+  product_id: string;
+  product_name: string;
+  store_id: string;
+  store_name: string;
+  rotation_pct: string;
+  rotation_text_class: string;
+  qty_stock: number;
+  qty_sold: number;
+};
+
 interface AnalisisStore {
   // UI
   viewMode: "compact" | "detailed";
   filterPanelOpen: boolean;
+  storeCellSheetOpen: boolean;
+  storeCellSheetData: StoreCellSheetData | null;
 
   // datos
   filters: AnalisisFilters;
@@ -22,6 +35,9 @@ interface AnalisisStore {
   toggleFilterPanel: () => void;
   closeFilterPanel: () => void;
   hasActiveFilters: () => boolean;
+  openStoreCellSheet: (data: StoreCellSheetData) => void;
+  closeStoreCellSheet: () => void;
+  setStoreCellSheetOpen: (open: boolean) => void;
 
   // acciones filtros
   setFilters: (filters: AnalisisFilters) => void;
@@ -55,6 +71,8 @@ export const useAnalisisStore = create<AnalisisStore>((set, get) => ({
   // UI
   viewMode: "compact",
   filterPanelOpen: true,
+  storeCellSheetOpen: false,
+  storeCellSheetData: null,
 
   // datos
   filters: INITIAL_FILTERS,
@@ -81,6 +99,13 @@ export const useAnalisisStore = create<AnalisisStore>((set, get) => ({
       filters.subgroups.length > 0
     );
   },
+  openStoreCellSheet: (data) => set({ storeCellSheetOpen: true, storeCellSheetData: data }),
+  closeStoreCellSheet: () => set({ storeCellSheetOpen: false, storeCellSheetData: null }),
+  setStoreCellSheetOpen: (open) =>
+    set((state) => ({
+      storeCellSheetOpen: open,
+      storeCellSheetData: open ? state.storeCellSheetData : null,
+    })),
 
   // acciones filtros
   // Al aplicar nuevos filtros, resetea la página a 1
@@ -95,6 +120,8 @@ export const useAnalisisStore = create<AnalisisStore>((set, get) => ({
     set({
       viewMode: "compact",
       filterPanelOpen: true,
+      storeCellSheetOpen: false,
+      storeCellSheetData: null,
       filters: INITIAL_FILTERS,
       filtersApplied: false,
       page: 1,
