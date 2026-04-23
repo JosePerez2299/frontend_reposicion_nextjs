@@ -140,6 +140,7 @@ export function OrderDetailModal({ open, onOpenChange, order }: Props) {
                 <OrderProcessButtons 
                   order={order} 
                   onStatusChange={handleStatusChange}
+                  orderItems={items}
                 />
               </div>
             </div>

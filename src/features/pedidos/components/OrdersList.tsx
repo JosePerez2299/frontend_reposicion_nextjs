@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { ArrowUpRight, Clock, Hash, AlignLeft, FileDown, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { downloadPdf } from "@/services/pedidos.service";
-import { OrderProcessButtons } from "./OrderProcessButtons";
 
 const STATUS_RANK: Record<OrderStatus, number> = {
   [OrderStatus.PENDING]: 0,
@@ -91,8 +90,6 @@ function OrderRow({ order }: { order: Order }) {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <OrderProcessButtons order={order} className="flex-shrink-0" />
-
                 <Button
                   size="sm"
                   variant="ghost"

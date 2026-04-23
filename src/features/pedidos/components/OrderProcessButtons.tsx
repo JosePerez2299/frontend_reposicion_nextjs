@@ -53,9 +53,10 @@ type Props = {
   order: Order;
   onStatusChange?: () => void;
   className?: string;
+  orderItems?: any[];
 };
 
-export function OrderProcessButtons({ order, onStatusChange, className }: Props) {
+export function OrderProcessButtons({ order, onStatusChange, className, orderItems = [] }: Props) {
   const updateOrderMutation = useUpdateOrderMutation();
   const approveOrderMutation = useApproveOrderMutation();
   const rejectOrderMutation = useRejectOrderMutation();
@@ -68,6 +69,14 @@ export function OrderProcessButtons({ order, onStatusChange, className }: Props)
   const [statusError, setStatusError] = useState<string | null>(null);
 
   const requestStatusChange = (next: OrderStatus) => {
+    // Prevent processing from pending to not_approved if there are no items
+    if (next === OrderStatus.NOT_APPROVED && orderItems.length === 0) {
+      toast.error("No se puede procesar la orden", {
+        description: "La orden debe tener al menos un item para poder procesarla",
+      });
+      return;
+    }
+    
     setPendingNextStatus(next);
     setConfirmOpen(true);
   };
@@ -115,24 +124,32 @@ export function OrderProcessButtons({ order, onStatusChange, className }: Props)
   return (
     <>
       <div className={`flex items-center gap-2 ${className}`}>
-        {allowed.map((next) => (
-          <Button
-            key={next}
-            size="sm"
-            variant={next === OrderStatus.CANCELLED ? "destructive" : "outline"}
-            className={
-              next === OrderStatus.CANCELLED
-                ? "h-7 text-xs px-3"
-                : "h-7 text-xs px-3"
-            }
-            onClick={() => requestStatusChange(next)}
-            disabled={updateOrderMutation.isPending}
-          >
-            {updateOrderMutation.isPending && updateOrderMutation.variables?.orderId === order.id
-              ? "..."
-              : getStatusActionLabel(next)}
-          </Button>
-        ))}
+        {allowed.map((next) => {
+          const isDisabled = updateOrderMutation.isPending || 
+                            (next === OrderStatus.NOT_APPROVED && orderItems.length === 0);
+          
+          return (
+            <Button
+              key={next}
+              size="sm"
+              variant={next === OrderStatus.CANCELLED ? "destructive" : "outline"}
+              className={
+                next === OrderStatus.CANCELLED
+                  ? "h-7 text-xs px-3"
+                  : "h-7 text-xs px-3"
+              }
+              onClick={() => requestStatusChange(next)}
+              disabled={isDisabled}
+              title={next === OrderStatus.NOT_APPROVED && orderItems.length === 0 
+                ? "La orden debe tener al menos un item para poder procesarla" 
+                : undefined}
+            >
+              {updateOrderMutation.isPending && updateOrderMutation.variables?.orderId === order.id
+                ? "..."
+                : getStatusActionLabel(next)}
+            </Button>
+          );
+        })}
       </div>
 
       {pendingNextStatus && (
