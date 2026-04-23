@@ -21,8 +21,10 @@ import {
   useDeleteOrderItemMutation,
 } from "@/features/pedidos/queries/pedidos.queries";
 import OrderStatusBadge from "./OrderStatusBadge";
+import { OrderProcessButtons } from "./OrderProcessButtons";
 import type { OrderItem } from "@/features/pedidos/types/pedido.types";
 import { OrderItemType } from "@/features/pedidos/types/pedido.types";
+import { useAnalisisStore } from "@/stores/resposicion-analisis.store";
 
 type Props = {
   open: boolean;
@@ -31,6 +33,8 @@ type Props = {
 };
 
 export function OrderDetailModal({ open, onOpenChange, order }: Props) {
+  const { selectedOrder, clearSelectedOrder } = useAnalisisStore();
+  
   const {
     data: items,
     isLoading,
@@ -52,6 +56,15 @@ export function OrderDetailModal({ open, onOpenChange, order }: Props) {
 
   const isPending = order?.status === "pending";
   const isDownloading = downloadState === "loading";
+
+  const handleStatusChange = () => {
+    refetch();
+    
+    // Clear selectedOrder if it was this order and it was pending before
+    if (selectedOrder?.id === order?.id && selectedOrder?.status === "pending") {
+      clearSelectedOrder();
+    }
+  };
 
   const startEdit = (it: OrderItem) => {
     setEditingId(it.id);
@@ -116,13 +129,19 @@ export function OrderDetailModal({ open, onOpenChange, order }: Props) {
         {/* ── Header ── */}
         <div className="px-6 pt-6 pb-4 border-b">
           <div className="flex items-start justify-between gap-3">
-            <div>
+            <div className="flex-1">
               <DialogTitle className="text-lg font-semibold leading-tight">
                 Orden #{order?.id}
               </DialogTitle>
               <p className="mt-1 text-sm text-muted-foreground">
                 {order?.description || "Sin descripción"}
               </p>
+              <div className="mt-3">
+                <OrderProcessButtons 
+                  order={order} 
+                  onStatusChange={handleStatusChange}
+                />
+              </div>
             </div>
             <OrderStatusBadge status={order?.status} />
           </div>

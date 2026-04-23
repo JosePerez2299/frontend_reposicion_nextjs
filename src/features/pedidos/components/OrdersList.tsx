@@ -6,10 +6,9 @@ import OrderStatusBadge from "./OrderStatusBadge";
 import OrderDetailModal from "./OrderDetailModal";
 import { Button } from "@/components/ui/button";
 import { ArrowUpRight, Clock, Hash, AlignLeft, FileDown, Loader2 } from "lucide-react";
-import { useUpdateOrderMutation, useApproveOrderMutation, useRejectOrderMutation, useCancelOrderMutation, useCompleteOrderMutation } from "@/features/pedidos/queries/pedidos.queries";
-import { OrderStatusConfirmDialog } from "@/features/pedidos/components/OrderStatusConfirmDialog";
 import { toast } from "sonner";
 import { downloadPdf } from "@/services/pedidos.service";
+import { OrderProcessButtons } from "./OrderProcessButtons";
 
 const STATUS_RANK: Record<OrderStatus, number> = {
   [OrderStatus.PENDING]: 0,
@@ -20,58 +19,10 @@ const STATUS_RANK: Record<OrderStatus, number> = {
   [OrderStatus.COMPLETED]: 4,
 };
 
-function getAllowedTransitions(status: OrderStatus): OrderStatus[] {
-  switch (status) {
-    case OrderStatus.PENDING:
-      return [OrderStatus.NOT_APPROVED, OrderStatus.CANCELLED];
-    case OrderStatus.NOT_APPROVED:
-      return [OrderStatus.APPROVED, OrderStatus.REJECTED, OrderStatus.CANCELLED];
-    case OrderStatus.APPROVED:
-      return [OrderStatus.COMPLETED];
-    case OrderStatus.REJECTED:
-    case OrderStatus.CANCELLED:
-    case OrderStatus.COMPLETED:
-    default:
-      return [];
-  }
-}
-
-function getStatusActionLabel(next: OrderStatus) {
-  switch (next) {
-    case OrderStatus.NOT_APPROVED:
-      return "Procesar";
-    case OrderStatus.APPROVED:
-      return "Aprobar";
-    case OrderStatus.REJECTED:
-      return "Rechazar";
-    case OrderStatus.CANCELLED:
-      return "Eliminar";
-    case OrderStatus.COMPLETED:
-      return "Completar";
-    default:
-      return "Actualizar";
-  }
-}
-
 function OrderRow({ order }: { order: Order }) {
   const [open, setOpen] = useState(false);
   const isPending = order.status === "pending";
-  const updateOrderMutation = useUpdateOrderMutation();
-  const approveOrderMutation = useApproveOrderMutation();
-  const rejectOrderMutation = useRejectOrderMutation();
-  const cancelOrderMutation = useCancelOrderMutation();
-  const completeOrderMutation = useCompleteOrderMutation();
-  const allowed = getAllowedTransitions(order.status);
-
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [pendingNextStatus, setPendingNextStatus] = useState<OrderStatus | null>(null);
-  const [statusError, setStatusError] = useState<string | null>(null);
   const [downloadingOrderId, setDownloadingOrderId] = useState<number | null>(null);
-
-  const requestStatusChange = (next: OrderStatus) => {
-    setPendingNextStatus(next);
-    setConfirmOpen(true);
-  };
 
   const handleDownload = async () => {
     setDownloadingOrderId(order.id);
@@ -82,40 +33,6 @@ function OrderRow({ order }: { order: Order }) {
       toast.error(error?.message || "Ocurrió un error al descargar el PDF");
     } finally {
       setDownloadingOrderId(null);
-    }
-  };
-
-  const handleStatusConfirm = async () => {
-    if (!pendingNextStatus) return;
-    setStatusError(null);
-
-    try {
-      switch (pendingNextStatus) {
-        case OrderStatus.NOT_APPROVED:
-          await updateOrderMutation.mutateAsync({ orderId: order.id, input: { status: pendingNextStatus } });
-          break;
-        case OrderStatus.APPROVED:
-          await approveOrderMutation.mutateAsync(order.id);
-          break;
-        case OrderStatus.REJECTED:
-          await rejectOrderMutation.mutateAsync(order.id);
-          break;
-        case OrderStatus.COMPLETED:
-          await completeOrderMutation.mutateAsync(order.id);
-          break;
-        case OrderStatus.CANCELLED:
-          await cancelOrderMutation.mutateAsync(order.id);
-          break;
-        default:
-          await updateOrderMutation.mutateAsync({ orderId: order.id, input: { status: pendingNextStatus } });
-      }
-
-      toast.success(`Orden #${order.id} actualizada`, {
-        description: `Estado cambiado a: ${getStatusActionLabel(pendingNextStatus)}`,
-      });
-    } catch (error: any) {
-      setStatusError(error.message || "Ocurrió un error al procesar la solicitud");
-      throw error;
     }
   };
 
@@ -174,24 +91,7 @@ function OrderRow({ order }: { order: Order }) {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                {allowed.map((next) => (
-                  <Button
-                    key={next}
-                    size="sm"
-                    variant={next === OrderStatus.CANCELLED ? "destructive" : "outline"}
-                    className={
-                      next === OrderStatus.CANCELLED
-                        ? "h-7 text-xs px-3"
-                        : "h-7 text-xs px-3"
-                    }
-                    onClick={() => requestStatusChange(next)}
-                    disabled={updateOrderMutation.isPending}
-                  >
-                    {updateOrderMutation.isPending && updateOrderMutation.variables?.orderId === order.id
-                      ? "..."
-                      : getStatusActionLabel(next)}
-                  </Button>
-                ))}
+                <OrderProcessButtons order={order} className="flex-shrink-0" />
 
                 <Button
                   size="sm"
@@ -227,32 +127,6 @@ function OrderRow({ order }: { order: Order }) {
       </li>
 
       <OrderDetailModal open={open} onOpenChange={setOpen} order={order} />
-
-      {pendingNextStatus && (
-        <OrderStatusConfirmDialog
-          open={confirmOpen}
-          onOpenChange={(next) => {
-            setConfirmOpen(next);
-            if (!next) {
-              setPendingNextStatus(null);
-              setStatusError(null);
-            }
-          }}
-          orderId={order.id}
-          currentStatus={order.status}
-          nextStatus={pendingNextStatus}
-          actionLabel={getStatusActionLabel(pendingNextStatus)}
-          onConfirm={handleStatusConfirm}
-          isPending={
-            updateOrderMutation.isPending ||
-            approveOrderMutation.isPending ||
-            rejectOrderMutation.isPending ||
-            cancelOrderMutation.isPending ||
-            completeOrderMutation.isPending
-          }
-          error={statusError}
-        />
-      )}
     </>
   );
 }
