@@ -17,7 +17,6 @@ type StoreCellSheetData = {
 };
 
 type VariantRow = {
-  id: string;
   variant: string;
   quantity: number;
 };
@@ -110,7 +109,7 @@ export function useStoreCellSheetOrderItem(
 
     if (variantMatrix.length === 0 && parsedVariants.length > 0) {
       setVariantMatrix([
-        { id: crypto.randomUUID(), variant: parsedVariants[0], quantity: 1 }
+        { variant: parsedVariants[0], quantity: 1 }
       ]);
     }
   }, [type, parsedVariants, variant, variantMatrix.length]);
@@ -123,27 +122,27 @@ export function useStoreCellSheetOrderItem(
     const availableVariant = parsedVariants.find(v => !variantMatrix.some(row => row.variant === v)) || parsedVariants[0];
     setVariantMatrix(prev => [
       ...prev,
-      { id: crypto.randomUUID(), variant: availableVariant, quantity: 1 }
+      { variant: availableVariant, quantity: 1 }
     ]);
   }, [parsedVariants, variantMatrix]);
 
-  const removeVariantRow = useCallback((rowId: string) => {
-    setVariantMatrix(prev => prev.filter(row => row.id !== rowId));
+  const removeVariantRow = useCallback((variant: string) => {
+    setVariantMatrix(prev => prev.filter(row => row.variant !== variant));
   }, []);
 
-  const updateVariantRow = useCallback((rowId: string, updates: Partial<Omit<VariantRow, 'id'>>) => {
+  const updateVariantRow = useCallback((variant: string, updates: Partial<VariantRow>) => {
     setVariantMatrix(prev => prev.map(row => 
-      row.id === rowId ? { ...row, ...updates } : row
+      row.variant === variant ? { ...row, ...updates } : row
     ));
   }, []);
 
-  const isVariantAvailable = useCallback((variant: string, excludeRowId?: string) => {
-    return !variantMatrix.some(row => row.variant === variant && row.id !== excludeRowId);
+  const isVariantAvailable = useCallback((variant: string, excludeVariant?: string) => {
+    return !variantMatrix.some(row => row.variant === variant && row.variant !== excludeVariant);
   }, [variantMatrix]);
 
   const resetVariantMatrix = useCallback(() => {
     if (parsedVariants.length > 0) {
-      setVariantMatrix([{ id: crypto.randomUUID(), variant: parsedVariants[0], quantity: 1 }]);
+      setVariantMatrix([{ variant: parsedVariants[0], quantity: 1 }]);
     } else {
       setVariantMatrix([]);
     }

@@ -47,7 +47,6 @@ type StoreCellSheetData = {
 };
 
 type VariantRow = {
-  id: string;
   variant: string;
   quantity: number;
 };
@@ -88,14 +87,13 @@ function deriveParsedVariants(raw: unknown[] | undefined) {
 
 function makeInitialVariantMatrix(parsedVariants: string[]) {
   if (parsedVariants.length === 0) return [];
-  return [{ id: crypto.randomUUID(), variant: parsedVariants[0], quantity: 1 } satisfies VariantRow];
+  return [{ variant: parsedVariants[0], quantity: 1 } satisfies VariantRow];
 }
 
 function upsertVariantMatrixFromExisting(items: OrderItem[], parsedVariants: string[]) {
   const rows: VariantRow[] = items
     .filter((it) => it.type === OrderItemType.UNIDAD && !!it.variant)
     .map((it) => ({
-      id: crypto.randomUUID(),
       variant: it.variant ?? "",
       quantity: it.quantity,
     }));
@@ -559,8 +557,8 @@ function ItemEditorUnidad({
   }, [enabled, order?.status, unidadItems.length]);
 
   const isVariantAvailable = useCallback(
-    (variant: string, excludeRowId?: string) => {
-      return !variantMatrix.some((row) => row.variant === variant && row.id !== excludeRowId);
+    (variant: string, excludeVariant?: string) => {
+      return !variantMatrix.some((row) => row.variant === variant && row.variant !== excludeVariant);
     },
     [variantMatrix]
   );
@@ -569,15 +567,15 @@ function ItemEditorUnidad({
     if (parsedVariants.length === 0) return;
     const available =
       parsedVariants.find((v) => !variantMatrix.some((row) => row.variant === v)) ?? parsedVariants[0];
-    setVariantMatrix((prev) => [...prev, { id: crypto.randomUUID(), variant: available, quantity: 1 }]);
+    setVariantMatrix((prev) => [...prev, { variant: available, quantity: 1 }]);
   }, [parsedVariants, variantMatrix]);
 
-  const removeVariantRow = useCallback((rowId: string) => {
-    setVariantMatrix((prev) => prev.filter((r) => r.id !== rowId));
+  const removeVariantRow = useCallback((variant: string) => {
+    setVariantMatrix((prev) => prev.filter((r) => r.variant !== variant));
   }, []);
 
-  const updateVariantRow = useCallback((rowId: string, updates: Partial<Omit<VariantRow, "id">>) => {
-    setVariantMatrix((prev) => prev.map((r) => (r.id === rowId ? { ...r, ...updates } : r)));
+  const updateVariantRow = useCallback((variant: string, updates: Partial<VariantRow>) => {
+    setVariantMatrix((prev) => prev.map((r) => (r.variant === variant ? { ...r, ...updates } : r)));
   }, []);
 
   const resetVariantMatrix = useCallback(() => {
@@ -690,18 +688,18 @@ function ItemEditorUnidad({
               <div className="space-y-2">
                 <Label>Variantes y cantidades</Label>
                 {variantMatrix.map((row) => (
-                  <div key={row.id} className="flex gap-2 items-start">
+                  <div key={row.variant} className="flex gap-2 items-start">
                     <div className="flex-1">
                       <Select
                         value={row.variant}
-                        onValueChange={(v) => updateVariantRow(row.id, { variant: v })}
+                        onValueChange={(v) => updateVariantRow(row.variant, { variant: v })}
                       >
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Talla" />
                         </SelectTrigger>
                         <SelectContent>
                           {parsedVariants.map((v) => (
-                            <SelectItem key={v} value={v} disabled={!isVariantAvailable(v, row.id)}>
+                            <SelectItem key={v} value={v} disabled={!isVariantAvailable(v, row.variant)}>
                               {v}
                             </SelectItem>
                           ))}
@@ -713,14 +711,14 @@ function ItemEditorUnidad({
                         type="number"
                         min={1}
                         value={row.quantity}
-                        onChange={(e) => updateVariantRow(row.id, { quantity: Number(e.target.value) })}
+                        onChange={(e) => updateVariantRow(row.variant, { quantity: Number(e.target.value) })}
                       />
                     </div>
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
-                      onClick={() => removeVariantRow(row.id)}
+                      onClick={() => removeVariantRow(row.variant)}
                       disabled={variantMatrix.length <= 1}
                       className="text-destructive"
                     >
@@ -807,15 +805,15 @@ function ItemEditorUnidad({
             <div className="space-y-2">
               <Label>Variantes y cantidades</Label>
               {variantMatrix.map((row) => (
-                <div key={row.id} className="flex gap-2 items-start">
+                <div key={row.variant} className="flex gap-2 items-start">
                   <div className="flex-1">
-                    <Select value={row.variant} onValueChange={(v) => updateVariantRow(row.id, { variant: v })}>
+                    <Select value={row.variant} onValueChange={(v) => updateVariantRow(row.variant, { variant: v })}>
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Talla" />
                       </SelectTrigger>
                       <SelectContent>
                         {parsedVariants.map((v) => (
-                          <SelectItem key={v} value={v} disabled={!isVariantAvailable(v, row.id)}>
+                          <SelectItem key={v} value={v} disabled={!isVariantAvailable(v, row.variant)}>
                             {v}
                           </SelectItem>
                         ))}
@@ -827,14 +825,14 @@ function ItemEditorUnidad({
                       type="number"
                       min={1}
                       value={row.quantity}
-                      onChange={(e) => updateVariantRow(row.id, { quantity: Number(e.target.value) })}
+                      onChange={(e) => updateVariantRow(row.variant, { quantity: Number(e.target.value) })}
                     />
                   </div>
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    onClick={() => removeVariantRow(row.id)}
+                    onClick={() => removeVariantRow(row.variant)}
                     disabled={variantMatrix.length <= 1}
                     className="text-destructive"
                   >

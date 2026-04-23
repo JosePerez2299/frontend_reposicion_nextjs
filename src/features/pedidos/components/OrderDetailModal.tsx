@@ -111,7 +111,7 @@ export function OrderDetailModal({ open, onOpenChange, order }: Props) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {/* sm:max-w-lg para un ancho cómodo en desktop */}
-      <DialogContent className="fixed top-1/2 left-1/2 z-50 flex max-h-[calc(100vh-2rem)] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col gap-0 overflow-hidden p-0">
+      <DialogContent className="fixed top-1/2 left-1/2 z-50 flex max-h-[calc(100vh-2rem)] w-[calc(100%-2rem)] max-w-[56rem] -translate-x-1/2 -translate-y-1/2 flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl">
 
         {/* ── Header ── */}
         <div className="px-6 pt-6 pb-4 border-b">
