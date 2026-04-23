@@ -111,7 +111,7 @@ export function OrderDetailModal({ open, onOpenChange, order }: Props) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {/* sm:max-w-lg para un ancho cómodo en desktop */}
-      <DialogContent className="relative flex flex-col gap-0 p-0 sm:max-w-lg max-h-[90vh]">
+      <DialogContent className="fixed top-1/2 left-1/2 z-50 flex max-h-[calc(100vh-2rem)] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col gap-0 overflow-hidden p-0">
 
         {/* ── Header ── */}
         <div className="px-6 pt-6 pb-4 border-b">
@@ -154,7 +154,7 @@ export function OrderDetailModal({ open, onOpenChange, order }: Props) {
         )}
 
         {/* ── Items (scrolleable) ── */}
-        <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0">
+        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
           <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
             Items
           </h4>
