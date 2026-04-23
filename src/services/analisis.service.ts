@@ -8,7 +8,7 @@ import { Category } from "@/schemas/entities/product.schema";
 
 export async function fetchOpcionesFiltros(): Promise<FilterOptions> {
   const categories: Category[] = await api.get("/products/filter-options");
-  const stores: { id: string; name: string }[] = await api.get("/store");
+  const stores: { id: string; name: string }[] = await api.get("/store/");
 
   return FilterOptionsSchema.parse({
     categories,
