@@ -1,5 +1,6 @@
 import { QueryCache, QueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { getErrorMessage } from '@/lib/errors'
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -11,7 +12,7 @@ export const queryClient = new QueryClient({
   },
   queryCache: new QueryCache({
     onError: (error) => {
-      toast.error(`Error: ${error.message}`)  // muestra toast en cualquier error
+      toast.error(getErrorMessage(error))
     },
   }),
 })

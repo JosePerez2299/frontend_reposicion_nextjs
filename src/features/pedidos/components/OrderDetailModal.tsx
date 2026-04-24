@@ -13,6 +13,7 @@ import { DeleteConfirmDialog } from "@/components/DeleteConfirmDialog";
 import { useState } from "react";
 import { AlertTriangle, FileDown, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/errors";
 import { downloadPdf } from "@/services/pedidos.service";
 
 import {
@@ -108,9 +109,9 @@ export function OrderDetailModal({ open, onOpenChange, order }: Props) {
     let failed = false;
     try {
       await downloadPdf(order.id);
-    } catch (error: any) {
+    } catch (error) {
       failed = true;
-      const message = error?.message || "Ocurrió un error al descargar el PDF";
+      const message = getErrorMessage(error);
       setDownloadError(message);
       setDownloadState("error");
       toast.error(message);

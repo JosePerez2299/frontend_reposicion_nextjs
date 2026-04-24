@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useUpdateOrderMutation, useApproveOrderMutation, useRejectOrderMutation, useCancelOrderMutation, useCompleteOrderMutation } from "@/features/pedidos/queries/pedidos.queries";
 import { OrderStatusConfirmDialog } from "@/features/pedidos/components/OrderStatusConfirmDialog";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/errors";
 
 const STATUS_RANK: Record<OrderStatus, number> = {
   [OrderStatus.PENDING]: 0,
@@ -111,8 +112,8 @@ export function OrderProcessButtons({ order, onStatusChange, className, orderIte
       });
       
       onStatusChange?.();
-    } catch (error: any) {
-      setStatusError(error.message || "Ocurrió un error al procesar la solicitud");
+    } catch (error) {
+      setStatusError(getErrorMessage(error));
       throw error;
     }
   };

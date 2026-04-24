@@ -20,16 +20,47 @@ export class ApiError extends Error {
   /** Extract detail from response data if available */
   static fromResponse(status: number, data: unknown): ApiError {
     let message = `Error ${status}`;
-
-    if (data && typeof data === "object") {
-      const body = data as Record<string, unknown>;
-      const detail = body.detail ?? body.message ?? body.error ?? body.msg;
-      if (typeof detail === "string" && detail) {
-        message = detail;
-      }
+    const extracted = extractMessageFromBody(data);
+    if (extracted) {
+      message = extracted;
     }
 
     return new ApiError(status, data, message);
+  }
+}
+
+function extractMessageFromBody(data: unknown): string | null {
+  if (!data || typeof data !== "object") return null;
+
+  const body = data as Record<string, unknown>;
+  const detail = body.detail ?? body.message ?? body.error ?? body.msg;
+
+  if (typeof detail === "string" && detail) {
+    return detail;
+  }
+
+  if (Array.isArray(body.detail)) {
+    const messages = (body.detail as Record<string, unknown>[])
+      .map((entry) => entry.msg)
+      .filter((msg): msg is string => typeof msg === "string" && msg.length > 0);
+
+    if (messages.length > 0) {
+      return messages.join(", ");
+    }
+  }
+
+  return null;
+}
+
+async function parseBlobErrorData(blob: Blob): Promise<unknown> {
+  const text = await blob.text();
+
+  if (!text) return null;
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { detail: text };
   }
 }
 
@@ -199,11 +230,28 @@ export const api = {
   },
   
   async download(endpoint: string, params?: Record<string, any>) {
-    const res = await apiInstance.get(endpoint, {
-      params,
-      responseType: "blob",
-    });
+    try {
+      const res = await apiInstance.get(endpoint, {
+        params,
+        responseType: "blob",
+      });
 
-    return res;
+      const contentType = String(res.headers["content-type"] ?? "");
+      const isPdf = contentType.includes("application/pdf");
+
+      if (res.data instanceof Blob && !isPdf) {
+        const parsedError = await parseBlobErrorData(res.data);
+        throw ApiError.fromResponse(res.status, parsedError);
+      }
+
+      return res;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.data instanceof Blob) {
+        const parsedError = await parseBlobErrorData(error.response.data);
+        throw ApiError.fromResponse(error.response.status, parsedError);
+      }
+
+      throw error;
+    }
   },
 };

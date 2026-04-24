@@ -7,6 +7,7 @@ import OrderDetailModal from "./OrderDetailModal";
 import { Button } from "@/components/ui/button";
 import { ArrowUpRight, Clock, Hash, AlignLeft, FileDown, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/errors";
 import { downloadPdf } from "@/services/pedidos.service";
 
 const STATUS_RANK: Record<OrderStatus, number> = {
@@ -28,8 +29,8 @@ function OrderRow({ order }: { order: Order }) {
 
     try {
       await downloadPdf(order.id);
-    } catch (error: any) {
-      toast.error(error?.message || "Ocurrió un error al descargar el PDF");
+    } catch (error) {
+      toast.error(getErrorMessage(error));
     } finally {
       setDownloadingOrderId(null);
     }
