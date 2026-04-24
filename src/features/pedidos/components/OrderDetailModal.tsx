@@ -14,7 +14,7 @@ import { useState } from "react";
 import { AlertTriangle, FileDown, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/errors";
-import { downloadPdf } from "@/services/pedidos.service";
+import { downloadPdf, downloadDetailedPdf } from "@/services/pedidos.service";
 
 import {
   useOrderItemsByOrderQuery,
@@ -54,6 +54,8 @@ export function OrderDetailModal({ open, onOpenChange, order }: Props) {
   const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
   const [downloadState, setDownloadState] = useState<"idle" | "loading" | "error">("idle");
   const [downloadError, setDownloadError] = useState<string | null>(null);
+  const [detailedDownloadState, setDetailedDownloadState] = useState<"idle" | "loading" | "error">("idle");
+  const [detailedDownloadError, setDetailedDownloadError] = useState<string | null>(null);
 
   const isPending = order?.status === "pending";
   const isDownloading = downloadState === "loading";
@@ -118,6 +120,27 @@ export function OrderDetailModal({ open, onOpenChange, order }: Props) {
     } finally {
       if (!failed) {
         setDownloadState("idle");
+      }
+    }
+  };
+
+  const handleDetailedDownload = async () => {
+    if (!order?.id) return;
+    setDetailedDownloadError(null);
+    setDetailedDownloadState("loading");
+
+    let failed = false;
+    try {
+      await downloadDetailedPdf(order.id);
+    } catch (error) {
+      failed = true;
+      const message = getErrorMessage(error);
+      setDetailedDownloadError(message);
+      setDetailedDownloadState("error");
+      toast.error(message);
+    } finally {
+      if (!failed) {
+        setDetailedDownloadState("idle");
       }
     }
   };
@@ -326,6 +349,24 @@ export function OrderDetailModal({ open, onOpenChange, order }: Props) {
                 </>
               )}
             </Button>
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto gap-2"
+              onClick={handleDetailedDownload}
+              disabled={detailedDownloadState === "loading"}
+            >
+              {detailedDownloadState === "loading" ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Descargando detallado...
+                </>
+              ) : (
+                <>
+                  <FileDown className="w-4 h-4" />
+                  Descargar PDF Detallado
+                </>
+              )}
+            </Button>
             <DialogClose asChild>
               <Button variant="outline" className="w-full sm:w-auto">
                 Cerrar
@@ -333,25 +374,23 @@ export function OrderDetailModal({ open, onOpenChange, order }: Props) {
             </DialogClose>
           </DialogFooter>
         </div>
-
-        <DeleteConfirmDialog
-          open={deleteConfirmOpen}
-          onOpenChange={(next) => {
-            setDeleteConfirmOpen(next);
-            if (!next) setPendingDeleteId(null);
-          }}
-          title="Eliminar item"
-          description="¿Estás seguro que deseas eliminar este item de la orden? Esta acción no se puede deshacer."
-          isPending={deleteMutation.isPending}
-          onConfirm={async () => {
-            if (pendingDeleteId === null) return;
-            await handleDelete(pendingDeleteId);
-            setDeleteConfirmOpen(false);
-            setPendingDeleteId(null);
-          }}
-        />
-
       </DialogContent>
+      <DeleteConfirmDialog
+        open={deleteConfirmOpen}
+        onOpenChange={(next) => {
+          setDeleteConfirmOpen(next);
+          if (!next) setPendingDeleteId(null);
+        }}
+        title="Eliminar item"
+        description="¿Estás seguro que deseas eliminar este item de la orden? Esta acción no se puede deshacer."
+        isPending={deleteMutation.isPending}
+        onConfirm={async () => {
+          if (pendingDeleteId === null) return;
+          await handleDelete(pendingDeleteId);
+          setDeleteConfirmOpen(false);
+          setPendingDeleteId(null);
+        }}
+      />
     </Dialog>
   );
 }

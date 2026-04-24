@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useAuthStore } from "@/stores/auth.store";
+import { useEffect, useState } from "react";
 import {
   AlertTriangle,
   ClipboardList,
@@ -192,6 +193,22 @@ function formatCurrency(n: number) {
 
 export default function Home() {
   const user = useAuthStore((state) => state.user);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <div className="flex flex-col gap-6 p-4 md:p-6 overflow-auto">
+        <div className="animate-pulse">
+          <div className="h-8 bg-muted rounded w-48 mb-2"></div>
+          <div className="h-4 bg-muted rounded w-32"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6 overflow-auto">

@@ -112,3 +112,28 @@ export const downloadPdf = async (orderId: number) => {
 
     URL.revokeObjectURL(url);
   };
+
+export const downloadDetailedPdf = async (orderId: number) => {
+    const res = await api.download(`/orders/${orderId}/pdf-store`);
+
+    const blob = new Blob([res.data], { type: "application/pdf" });
+
+    // Intentar extraer nombre desde headers (backend)
+    const contentDisposition = res.headers["content-disposition"];
+    let filename = `order_detailed_${orderId}.pdf`;
+
+    if (contentDisposition) {
+      const match = contentDisposition.match(/filename="?(.+)"?/);
+      if (match?.[1]) filename = match[1];
+    }
+
+    const url = window.URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+
+    link.click();
+
+    URL.revokeObjectURL(url);
+  };

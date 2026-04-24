@@ -79,7 +79,13 @@ export default function LoginForm() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        <form 
+          onSubmit={handleSubmit(onSubmit)} 
+          className="space-y-5"
+          method="POST"
+          action="/login"
+          name="loginForm"
+        >
           {/* Username */}
           <div className="space-y-2">
             <Label htmlFor="username">Usuario</Label>
