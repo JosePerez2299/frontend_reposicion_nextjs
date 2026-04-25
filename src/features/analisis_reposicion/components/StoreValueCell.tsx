@@ -142,7 +142,7 @@ export function StoreValueCell({
               <div><span className="font-medium">Transacciones:</span></div>
               <div className="text-muted-foreground">{transactions.toLocaleString()}</div>
               <div><span className="font-medium">Total compras:</span></div>
-              <div className="font-semibold">${total_buy.toLocaleString()}</div>
+              <div className="font-semibold">{total_buy.toLocaleString()}</div>
             </div>
           </div>
         </TooltipContent>
