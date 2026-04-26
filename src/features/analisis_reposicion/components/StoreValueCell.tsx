@@ -19,6 +19,7 @@ type Props = {
   storeId: string;
   storeName: string;
   qty_stock: number;
+  qty_stock_until_date: number;
   qty_sold: number;
   transactions: number;
   total_buy: number;
@@ -33,6 +34,7 @@ export function StoreValueCell({
   storeId,
   storeName,
   qty_stock,
+  qty_stock_until_date,
   qty_sold,
   transactions,
   total_buy,
@@ -137,12 +139,14 @@ export function StoreValueCell({
               <div className={`font-bold ${rotationColors.textClass}`}>{pct}%</div>
               <div><span className="font-medium">Stock:</span></div>
               <div className="text-muted-foreground">{qty_stock.toLocaleString()}</div>
+              <div><span className="font-medium">Stock hasta fecha:</span></div>
+              <div className="text-muted-foreground">{qty_stock_until_date.toLocaleString()}</div>
               <div><span className="font-medium">Ventas:</span></div>
               <div className="font-semibold">{qty_sold.toLocaleString()}</div>
               <div><span className="font-medium">Transacciones:</span></div>
               <div className="text-muted-foreground">{transactions.toLocaleString()}</div>
               <div><span className="font-medium">Total compras:</span></div>
-              <div className="font-semibold">${total_buy.toLocaleString()}</div>
+              <div className="font-semibold">{total_buy.toLocaleString()}</div>
             </div>
           </div>
         </TooltipContent>

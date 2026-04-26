@@ -36,6 +36,7 @@ import type { OrderItemResponse } from "@/services/pedidos.service";
 export interface StoreValue {
   qty_sold: number;
   qty_stock: number;
+  qty_stock_until_date: number;
   transactions: number;
   total_buy: number;
   rotation: number;
@@ -44,10 +45,7 @@ export interface StoreValue {
 export interface AnalisisRow {
   product_code: string;
   product_name: string;
-  group_id: string;
-  group_name: string;
-  subgroup_id: string;
-  subgroup_name: string;
+
   price: number;
   cost: number;
   values: Record<string, StoreValue>;
@@ -107,7 +105,6 @@ const productColumns: ColumnDef<AnalisisRow>[] = [
                 <p className="text-xs text-muted-foreground">
                   Margen: ${(price - row.original.cost).toFixed(2)}
                 </p>
-                <p className="text-xs text-muted-foreground">Colección: {row.original.group_name}</p>
               </div>
             </TooltipContent>
           </Tooltip>
@@ -169,6 +166,7 @@ function buildStoreColumns(
           storeId={store.id}
           storeName={store.name}
           qty_stock={val.qty_stock}
+          qty_stock_until_date={val.qty_stock_until_date}
           qty_sold={val.qty_sold}
           transactions={val.transactions}
           total_buy={val.total_buy}

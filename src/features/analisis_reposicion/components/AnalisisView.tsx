@@ -13,7 +13,7 @@ export const AnalisisView = () => {
   const { data, isLoading, isError } = useRotation(
     filtersApplied,
     page,
-    12
+    10
   );
 
   if (isLoading) {
