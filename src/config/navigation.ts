@@ -90,7 +90,7 @@ export const navigation: NavSection[] = [
       {
         id: "exportaciones",
         label: "Exportaciones",
-        href: "/desarrollo",
+        href: "/reportes",
         icon: Download,
         badge: null,
         roles: [RolesEnum.Reposicion, RolesEnum.Admin],

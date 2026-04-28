@@ -229,6 +229,30 @@ export const api = {
     return res.data;
   },
   
+  async postDownload(endpoint: string, body: unknown) {
+    try {
+      const res = await apiInstance.post(endpoint, body, {
+        responseType: "blob",
+      });
+
+      const contentType = String(res.headers["content-type"] ?? "");
+
+      if (res.data instanceof Blob && !contentType.includes("application/xml") && !contentType.includes("text/xml") && !contentType.includes("application/vnd.openxmlformats")) {
+        const parsedError = await parseBlobErrorData(res.data);
+        throw ApiError.fromResponse(res.status, parsedError);
+      }
+
+      return res;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.data instanceof Blob) {
+        const parsedError = await parseBlobErrorData(error.response.data);
+        throw ApiError.fromResponse(error.response.status, parsedError);
+      }
+
+      throw error;
+    }
+  },
+
   async download(endpoint: string, params?: Record<string, any>) {
     try {
       const res = await apiInstance.get(endpoint, {
