@@ -16,6 +16,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Check, Plus } from "lucide-react";
 import { useAnalisisStore } from "@/stores/resposicion-analisis.store";
 import {
   Tooltip,
@@ -126,6 +127,61 @@ const productColumns: ColumnDef<AnalisisRow>[] = [
   },
 ];
 
+function EmptyStoreCell({
+  productId,
+  productName,
+  storeId,
+  storeName,
+  hasOrder,
+}: {
+  productId: string;
+  productName: string;
+  storeId: string;
+  storeName: string;
+  hasOrder?: boolean;
+}) {
+  const openStoreCellSheet = useAnalisisStore((s) => s.openStoreCellSheet);
+  const handleOpen = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    openStoreCellSheet({
+      product_id: productId,
+      product_name: productName,
+      store_id: storeId,
+      store_name: storeName,
+      rotation_pct: "0.0",
+      rotation_text_class: "text-muted-foreground",
+      qty_stock: 0,
+      qty_sold: 0,
+    });
+  };
+  return (
+    <div className="relative group/storecell h-full w-full flex items-center justify-center">
+      <span className="text-muted-foreground font-mono text-[11px]">—</span>
+      {hasOrder ? (
+        <button
+          type="button"
+          className="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-md border border-emerald-600/30 bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/15"
+          onClick={handleOpen}
+          aria-label="Abrir pedido"
+          title="Abrir pedido"
+        >
+          <Check className="h-4 w-4" />
+        </button>
+      ) : (
+        <button
+          type="button"
+          className="absolute top-1 right-1 opacity-0 group-hover/storecell:opacity-100 transition-opacity duration-150"
+          onClick={handleOpen}
+        >
+          <span className="flex h-6 w-6 items-center justify-center rounded-md border border-border bg-background/50 supports-[backdrop-filter]:bg-background/30 backdrop-blur text-muted-foreground hover:bg-background/70">
+            <Plus className="h-4 w-4" />
+          </span>
+        </button>
+      )}
+    </div>
+  );
+}
+
 function buildStoreColumns(
   stores: StoreHeader[],
   viewMode: "compact" | "detailed",
@@ -155,7 +211,13 @@ function buildStoreColumns(
       const val = row.original.values[store.id];
       if (!val)
         return (
-          <span className="block text-center text-muted-foreground font-mono text-[11px]">—</span>
+          <EmptyStoreCell
+            productId={row.original.product_code}
+            productName={row.original.product_name}
+            storeId={store.id}
+            storeName={store.name}
+            hasOrder={hasOrderForCell(row.original.product_code, store.id)}
+          />
         );
 
       return (
