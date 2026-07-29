@@ -21,9 +21,6 @@ export async function fetchRotation(
   page: number = 1,
   limit: number = 5,
 ): Promise<any> {
-  console.log("filters", filters);
-  console.log("page", page);
-  console.log("limit", limit);
   const data = await api.post("sales/rotation", filters, {
     current_page: page,
     limit,

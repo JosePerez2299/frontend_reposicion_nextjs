@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { DatePickerWithRange } from "@/components/ui/date-rangepicker";
 import { ComboboxAsync } from "@/components/ui/combobox-async";
+import { Toggle } from "@/components/ui/toggle";
+import { PackageCheck } from "lucide-react";
 import { useAnalisisFilterForm } from "../hooks/useAnalisisFilterForm";
 
 function FiltersSkeleton() {
@@ -161,6 +163,26 @@ export function AnalisisFilterPanel() {
           searchPlaceholder="Buscar subcolección..."
           disabled={!groupsSelected.length}
           className="w-[200px]"
+        />
+      </div>
+
+      {/* Stock en el mayorista */}
+      <div className="flex flex-col gap-1.5">
+        <Label className="text-xs text-muted-foreground">Mayorista</Label>
+        <Controller
+          control={control}
+          name="only_supplier_stock"
+          render={({ field }) => (
+            <Toggle
+              variant="outline"
+              className="h-8 text-xs data-[state=on]:border-emerald-600/40 data-[state=on]:bg-emerald-500/10 data-[state=on]:text-emerald-700 dark:data-[state=on]:text-emerald-400"
+              pressed={!!field.value}
+              onPressedChange={field.onChange}
+            >
+              <PackageCheck className="h-3.5 w-3.5" />
+              Solo con stock
+            </Toggle>
+          )}
         />
       </div>
 

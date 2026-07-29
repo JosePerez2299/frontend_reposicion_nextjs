@@ -65,6 +65,7 @@ export const INITIAL_FILTERS: AnalisisFilters = {
   subgroups: [],
   product_codes: [],
   store_ids: [],
+  only_supplier_stock: false,
 };
 
 export const useAnalisisStore = create<AnalisisStore>((set, get) => ({
@@ -96,7 +97,8 @@ export const useAnalisisStore = create<AnalisisStore>((set, get) => ({
       (filters.dates.from !== undefined && filters.dates.to !== undefined) ||
       filters.category !== "" ||
       filters.groups.length > 0 ||
-      filters.subgroups.length > 0
+      filters.subgroups.length > 0 ||
+      filters.only_supplier_stock
     );
   },
   openStoreCellSheet: (data) => set({ storeCellSheetOpen: true, storeCellSheetData: data }),

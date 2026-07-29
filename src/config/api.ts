@@ -253,7 +253,12 @@ export const api = {
     }
   },
 
-  async download(endpoint: string, params?: Record<string, any>) {
+  async download(
+    endpoint: string,
+    params?: Record<string, any>,
+    // Default a "application/pdf" para no cambiar el comportamiento de los llamadores existentes
+    acceptContentType: string | string[] = "application/pdf",
+  ) {
     try {
       const res = await apiInstance.get(endpoint, {
         params,
@@ -261,9 +266,10 @@ export const api = {
       });
 
       const contentType = String(res.headers["content-type"] ?? "");
-      const isPdf = contentType.includes("application/pdf");
+      const expected = Array.isArray(acceptContentType) ? acceptContentType : [acceptContentType];
+      const isExpected = expected.some((t) => contentType.includes(t));
 
-      if (res.data instanceof Blob && !isPdf) {
+      if (res.data instanceof Blob && !isExpected) {
         const parsedError = await parseBlobErrorData(res.data);
         throw ApiError.fromResponse(res.status, parsedError);
       }

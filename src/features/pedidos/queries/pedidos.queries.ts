@@ -44,9 +44,11 @@ export function useOrderItemsQuery(
     queryKey: ["pedidos", "orderItems", orderId, filters],
     queryFn: () => fetchOrderItems(orderId, filters),
     enabled: !!orderId && hasFilters && options?.enabled !== false,
-    staleTime: 1000 * 60 * 30,
+    // Corto y refetch al montar: el editor arma un diff con estos ids, y sembrarlo
+    // con datos viejos hace que el PUT/DELETE pegue contra ítems ya borrados.
+    staleTime: 1000 * 30,
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    refetchOnMount: true,
   });
 }
 

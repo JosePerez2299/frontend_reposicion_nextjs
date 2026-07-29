@@ -14,7 +14,7 @@ import { useState } from "react";
 import { AlertTriangle, FileDown, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/errors";
-import { downloadPdf, downloadDetailedPdf } from "@/services/pedidos.service";
+import { downloadPdf, downloadDetailedPdf, downloadOrderCsv } from "@/services/pedidos.service";
 
 import {
   useOrderItemsByOrderQuery,
@@ -56,6 +56,8 @@ export function OrderDetailModal({ open, onOpenChange, order }: Props) {
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const [detailedDownloadState, setDetailedDownloadState] = useState<"idle" | "loading" | "error">("idle");
   const [detailedDownloadError, setDetailedDownloadError] = useState<string | null>(null);
+  const [csvDownloadState, setCsvDownloadState] = useState<"idle" | "loading" | "error">("idle");
+  const [csvDownloadError, setCsvDownloadError] = useState<string | null>(null);
 
   const isPending = order?.status === "pending";
   const isDownloading = downloadState === "loading";
@@ -141,6 +143,27 @@ export function OrderDetailModal({ open, onOpenChange, order }: Props) {
     } finally {
       if (!failed) {
         setDetailedDownloadState("idle");
+      }
+    }
+  };
+
+  const handleCsvDownload = async () => {
+    if (!order?.id) return;
+    setCsvDownloadError(null);
+    setCsvDownloadState("loading");
+
+    let failed = false;
+    try {
+      await downloadOrderCsv(order.id);
+    } catch (error) {
+      failed = true;
+      const message = getErrorMessage(error);
+      setCsvDownloadError(message);
+      setCsvDownloadState("error");
+      toast.error(message);
+    } finally {
+      if (!failed) {
+        setCsvDownloadState("idle");
       }
     }
   };
@@ -277,18 +300,34 @@ export function OrderDetailModal({ open, onOpenChange, order }: Props) {
                             <span className="font-semibold text-foreground">
                               {it.type ?? "-"}
                             </span>
-                          </div>                          {it.type === OrderItemType.BULTO ? (
+                          </div>
+                          {it.type === OrderItemType.BULTO ? (
                             <div>
-                              Unidad de medida: {" "}
+                              Piezas por bulto:{" "}
                               <span className="font-semibold text-foreground">
                                 {it.unit_size ?? "-"}
                               </span>
+                              {it.unit_size ? (
+                                <span className="text-muted-foreground">
+                                  {" "}
+                                  (total {it.quantity * it.unit_size} u)
+                                </span>
+                              ) : null}
                             </div>
-                          ) : null}                          {it.type === OrderItemType.UNIDAD && it.variant ? (
+                          ) : null}
+                          {it.variant ? (
                             <div>
                               Variante:{" "}
                               <span className="font-semibold text-foreground">
                                 {it.variant}
+                              </span>
+                            </div>
+                          ) : null}
+                          {it.sap_item_code ? (
+                            <div>
+                              SKU proveedor:{" "}
+                              <span className="font-mono text-foreground">
+                                {it.sap_item_code}
                               </span>
                             </div>
                           ) : null}
@@ -364,6 +403,24 @@ export function OrderDetailModal({ open, onOpenChange, order }: Props) {
                 <>
                   <FileDown className="w-4 h-4" />
                   Descargar PDF Detallado
+                </>
+              )}
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto gap-2"
+              onClick={handleCsvDownload}
+              disabled={csvDownloadState === "loading"}
+            >
+              {csvDownloadState === "loading" ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Descargando CSV...
+                </>
+              ) : (
+                <>
+                  <FileDown className="w-4 h-4" />
+                  Descargar CSV
                 </>
               )}
             </Button>

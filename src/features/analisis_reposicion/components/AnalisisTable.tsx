@@ -16,7 +16,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Check, Plus } from "lucide-react";
+import { Check, Layers, Plus } from "lucide-react";
 import { useAnalisisStore } from "@/stores/resposicion-analisis.store";
 import {
   Tooltip,
@@ -29,6 +29,11 @@ import { StoreCellSheet } from "@/features/analisis_reposicion/components/StoreC
 import { getCompleteLegendConfig } from "@/lib/utils";
 import { useOrderItemsByOrderQuery } from "@/features/pedidos/queries/pedidos.queries";
 import type { OrderItemResponse } from "@/services/pedidos.service";
+import {
+  SupplierStockMarker,
+  SupplierTooltipDetail,
+  type SupplierAvailability,
+} from "@/features/analisis_reposicion/components/SupplierStockBadge";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -49,6 +54,8 @@ export interface AnalisisRow {
 
   price: number;
   cost: number;
+  /** Disponibilidad en el mayorista, del último snapshot. Ausente si el backend es viejo. */
+  supplier?: SupplierAvailability | null;
   values: Record<string, StoreValue>;
 }
 
@@ -92,8 +99,11 @@ const productColumns: ColumnDef<AnalisisRow>[] = [
                 <span className="block truncate text-[12px] font-bold leading-snug font-mono">
                   {name}
                 </span>
-                <span className="font-mono text-[9px] text-muted-foreground mt-0.5 tracking-wide">
-                  {row.original.product_code}
+                <span className="mt-0.5 flex items-center gap-1">
+                  <span className="font-mono text-[9px] text-muted-foreground tracking-wide">
+                    {row.original.product_code}
+                  </span>
+                  <SupplierStockMarker supplier={row.original.supplier} />
                 </span>
               </div>
             </TooltipTrigger>
@@ -106,6 +116,7 @@ const productColumns: ColumnDef<AnalisisRow>[] = [
                 <p className="text-xs text-muted-foreground">
                   Margen: ${(price - row.original.cost).toFixed(2)}
                 </p>
+                <SupplierTooltipDetail supplier={row.original.supplier} />
               </div>
             </TooltipContent>
           </Tooltip>
@@ -133,12 +144,14 @@ function EmptyStoreCell({
   storeId,
   storeName,
   hasOrder,
+  hasAssorted,
 }: {
   productId: string;
   productName: string;
   storeId: string;
   storeName: string;
   hasOrder?: boolean;
+  hasAssorted?: boolean;
 }) {
   const openStoreCellSheet = useAnalisisStore((s) => s.openStoreCellSheet);
   const handleOpen = (e: React.MouseEvent) => {
@@ -157,6 +170,14 @@ function EmptyStoreCell({
   return (
     <div className="relative group/storecell h-full w-full flex items-center justify-center">
       <span className="text-muted-foreground font-mono text-[11px]">—</span>
+      {hasAssorted ? (
+        <span
+          className="absolute top-1 left-1 flex h-4 w-4 items-center justify-center rounded border border-amber-600/30 bg-amber-500/10 text-amber-700"
+          title="Hay un pedido de colores surtidos de este modelo"
+        >
+          <Layers className="h-3 w-3" />
+        </span>
+      ) : null}
       {hasOrder ? (
         <button
           type="button"
@@ -182,10 +203,12 @@ function EmptyStoreCell({
   );
 }
 
+export type CellFlags = { hasOrder: boolean; hasAssorted: boolean };
+
 function buildStoreColumns(
   stores: StoreHeader[],
   viewMode: "compact" | "detailed",
-  hasOrderForCell: (productId: string, storeId: string) => boolean
+  cellFlags: (productId: string, storeId: string) => CellFlags
 ): ColumnDef<AnalisisRow>[] {
   return (stores ?? []).map((store) => ({
     id: `store_${store.id}`,
@@ -209,6 +232,8 @@ function buildStoreColumns(
     meta: { isCellColored: true },
     cell: ({ row }) => {
       const val = row.original.values[store.id];
+      const flags = cellFlags(row.original.product_code, store.id);
+
       if (!val)
         return (
           <EmptyStoreCell
@@ -216,7 +241,8 @@ function buildStoreColumns(
             productName={row.original.product_name}
             storeId={store.id}
             storeName={store.name}
-            hasOrder={hasOrderForCell(row.original.product_code, store.id)}
+            hasOrder={flags.hasOrder}
+            hasAssorted={flags.hasAssorted}
           />
         );
 
@@ -233,7 +259,8 @@ function buildStoreColumns(
           transactions={val.transactions}
           total_buy={val.total_buy}
           rotation={val.rotation}
-          hasOrder={hasOrderForCell(row.original.product_code, store.id)}
+          hasOrder={flags.hasOrder}
+          hasAssorted={flags.hasAssorted}
         />
       );
     },
@@ -262,26 +289,38 @@ export function AnalisisTable({ data }: AnalisisTableProps) {
     enabled: !!selectedOrder?.id,
   });
 
-  const hasOrderSet = useMemo(() => {
-    const set = new Set<string>();
+  /**
+   * Dos señales por celda en un solo memo, para no reconstruir las columnas dos
+   * veces por cada mutación de items:
+   *  - hasOrder: pedido de este product_id exacto
+   *  - hasAssorted: pedido de colores surtidos (color 9999) del mismo modelo, que
+   *    vive bajo otro product_id y por eso no prende el check exacto
+   */
+  const cellFlags = useMemo(() => {
+    const exact = new Set<string>();
+    const assortedByModel = new Set<string>();
     const items = (orderItems ?? []) as OrderItemResponse[];
+
     for (const it of items) {
       if (!it?.product_id || !it?.store_id) continue;
-      set.add(`${it.product_id}|${it.store_id}`);
+      exact.add(`${it.product_id}|${it.store_id}`);
+      if (it.product_id.endsWith("9999")) {
+        assortedByModel.add(`${it.product_id.slice(0, 6)}|${it.store_id}`);
+      }
     }
-    return set;
-  }, [orderItems]);
 
-  const hasOrderForCell = useMemo(() => {
-    return (productId: string, storeId: string) => hasOrderSet.has(`${productId}|${storeId}`);
-  }, [hasOrderSet]);
+    return (productId: string, storeId: string) => ({
+      hasOrder: exact.has(`${productId}|${storeId}`),
+      hasAssorted: assortedByModel.has(`${productId.slice(0, 6)}|${storeId}`),
+    });
+  }, [orderItems]);
 
   const columns = useMemo(
     () => [
       ...productColumns,
-      ...buildStoreColumns(data.stores ?? [], viewMode, hasOrderForCell),
+      ...buildStoreColumns(data.stores ?? [], viewMode, cellFlags),
     ],
-    [data.stores, viewMode, hasOrderForCell]
+    [data.stores, viewMode, cellFlags]
   );
 
   const table = useReactTable({

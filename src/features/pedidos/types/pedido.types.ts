@@ -37,32 +37,40 @@ export type Order = {
 export type OrderItem = {
   id: number;
   order_id: number;
+  /**
+   * SKU de 13 del proveedor. `null` en los ítems creados antes de la integración
+   * con SAP: son los que guardan tallas de Stellar de 2 caracteres ("35", "36")
+   * o directamente ningún variant. Es el discriminador entre las dos épocas.
+   */
+  sap_item_code: string | null;
   product_id: string;
   store_id: string;
   type: OrderItemType;
+  product_name: string | null;
+  /** Preempaque de SAP de 3 chars ("C41", "400") en los ítems nuevos. */
+  variant: string | null;
+  /** Bultos si type es BULTO, unidades si es UNIDAD. */
   quantity: number;
-  variant?: string;
-  unit_size?: number;
+  /** Piezas por bulto (SalFactor2). Lo deriva el backend del SKU. */
+  unit_size: number | null;
   created_at: string;
   updated_at: string;
 };
 
+/**
+ * Se manda el SKU de 13 y el backend deriva product_id, variant, type, unit_size
+ * y product_name consultando SAP. No mandes esos campos: los rechaza.
+ */
 export type CreateOrderItemInput = {
   order_id: number;
-  product_id: string;
   store_id: string;
-  type: OrderItemType;
+  item_code: string;
   quantity: number;
-  variant?: string;
-  unit_size?: number;
 };
 
+/** Cambiar `item_code` rederiva product_id, variant, unit_size y type juntos. */
 export type UpdateOrderItemInput = {
-  product_id?: string;
-  store_id?: string;
-  type?: OrderItemType;
-  quantity?: number;
-  variant?: string;
-  unit_size?: number;
   item_id: number;
+  quantity?: number;
+  item_code?: string;
 };

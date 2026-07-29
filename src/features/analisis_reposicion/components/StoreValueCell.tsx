@@ -8,7 +8,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { StoreCellModal } from "./StoreCellModal";
-import { Check, Plus } from "lucide-react";
+import { Check, Layers, Plus } from "lucide-react";
 import { getRotationStyle, getStockIndicatorClass } from "@/lib/utils";
 import { useAnalisisStore } from "@/stores/resposicion-analisis.store";
 
@@ -25,6 +25,8 @@ type Props = {
   total_buy: number;
   rotation: number;
   hasOrder?: boolean;
+  /** Hay un pedido de colores surtidos (9999) de este modelo, bajo otro product_id. */
+  hasAssorted?: boolean;
 };
 
 export function StoreValueCell({
@@ -40,6 +42,7 @@ export function StoreValueCell({
   total_buy,
   rotation,
   hasOrder,
+  hasAssorted,
 }: Props) {
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -78,6 +81,15 @@ export function StoreValueCell({
             className="relative group/storecell h-full w-full flex items-center justify-center cursor-help bg-background transition-[filter] duration-100 hover:brightness-95"
             onClick={handleOpenModal}
           >
+            {hasAssorted ? (
+              <span
+                className="absolute top-1 left-1 flex h-4 w-4 items-center justify-center rounded border border-amber-600/30 bg-amber-500/10 text-amber-700"
+                title="Hay un pedido de colores surtidos de este modelo"
+              >
+                <Layers className="h-3 w-3" />
+              </span>
+            ) : null}
+
             {hasOrder ? (
               <button
                 type="button"

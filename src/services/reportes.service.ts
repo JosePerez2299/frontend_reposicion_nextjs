@@ -15,6 +15,7 @@ function mapFiltersToExportRequest(filters: AnalisisFilters) {
       category_id: filters.category,
       group_ids: filters.groups,
       subgroup_ids: filters.subgroups,
+      only_supplier_stock: filters.only_supplier_stock,
     },
     dates: {
       start: format(filters.dates.from, "yyyy-MM-dd"),
