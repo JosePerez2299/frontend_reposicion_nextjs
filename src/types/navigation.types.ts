@@ -6,13 +6,14 @@ interface NavBadge {
   variant: "red" | "amber" | "blue";
 }
 
-interface NavItem {
+export interface NavItem {
   id: string;
   label: string;
   href: string;
   icon: LucideIcon;
   badge: NavBadge | null;
-  roles: RolesEnum[];
+  /** Roles que ven el ítem. Sin definir: cualquier usuario autenticado. */
+  roles?: RolesEnum[];
 }
 
 export interface NavSection {

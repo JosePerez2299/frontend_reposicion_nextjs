@@ -9,6 +9,7 @@ import {
   TrendingUp,
   Home,
   User,
+  Store,
 } from "lucide-react";
 import { NavSection } from "@/types/navigation.types";
 
@@ -22,7 +23,6 @@ export const navigation: NavSection[] = [
         href: "/",
         icon: Home,
         badge: null,
-        roles: [RolesEnum.Reposicion, RolesEnum.Admin, RolesEnum.Pedidos, RolesEnum.Almacen],
       },
       {
         id: "perfil",
@@ -30,7 +30,6 @@ export const navigation: NavSection[] = [
         href: "/perfil",
         icon: User,
         badge: null,
-        roles: [RolesEnum.Reposicion, RolesEnum.Admin, RolesEnum.Pedidos, RolesEnum.Almacen],
       },
     ],
   },
@@ -102,6 +101,19 @@ export const navigation: NavSection[] = [
         icon: TrendingUp,
         badge: null,
         roles: [RolesEnum.Reposicion, RolesEnum.Admin],
+      },
+    ],
+  },
+  {
+    section: "Ajustes",
+    items: [
+      {
+        id: "ajustes-tiendas",
+        label: "Tiendas",
+        href: "/ajustes/tiendas",
+        icon: Store,
+        badge: null,
+        roles: [RolesEnum.Admin],
       },
     ],
   },

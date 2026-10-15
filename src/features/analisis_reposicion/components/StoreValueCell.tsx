@@ -19,6 +19,8 @@ type Props = {
   storeId: string;
   storeName: string;
   qty_stock: number;
+  /** Stock en los almacenes extra; solo informativo, no se suma a qty_stock. */
+  qty_stock_other: number;
   qty_stock_until_date: number;
   qty_sold: number;
   transactions: number;
@@ -36,6 +38,7 @@ export function StoreValueCell({
   storeId,
   storeName,
   qty_stock,
+  qty_stock_other,
   qty_stock_until_date,
   qty_sold,
   transactions,
@@ -51,6 +54,8 @@ export function StoreValueCell({
   const rotationColors = getRotationStyle(rotation);
   const stockIndicatorClass = getStockIndicatorClass(qty_stock);
   const pct = (rotation * 100).toFixed(1);
+  const hasOtherStock = qty_stock_other > 0;
+  const otherStockTitle = `+${qty_stock_other.toLocaleString()} en otros almacenes`;
 
   const handleOpenDialog = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -120,6 +125,11 @@ export function StoreValueCell({
                 <div className="text-center font-mono text-[11px] text-muted-foreground border-l border-border relative">
                   <div className={`absolute left-1 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full ${stockIndicatorClass}`} />
                   {qty_stock.toLocaleString()}
+                  {hasOtherStock && (
+                    <span className="ml-0.5 text-[9px] text-primary" title={otherStockTitle}>
+                      +{qty_stock_other.toLocaleString()}
+                    </span>
+                  )}
                 </div>
                 <div className="text-center font-mono font-semibold text-[12px] text-foreground border-l border-border">
                   {qty_sold.toLocaleString()}
@@ -135,6 +145,11 @@ export function StoreValueCell({
                 </div>
                 <span className="font-mono text-[9px] text-muted-foreground mt-0.5 block">
                   {qty_stock}u
+                  {hasOtherStock && (
+                    <span className="ml-0.5 text-primary" title={otherStockTitle}>
+                      +{qty_stock_other}
+                    </span>
+                  )}
                 </span>
               </div>
             )}
@@ -151,6 +166,12 @@ export function StoreValueCell({
               <div className={`font-bold ${rotationColors.textClass}`}>{pct}%</div>
               <div><span className="font-medium">Stock:</span></div>
               <div className="text-muted-foreground">{qty_stock.toLocaleString()}</div>
+              {hasOtherStock && (
+                <>
+                  <div><span className="font-medium">Otros almacenes:</span></div>
+                  <div className="text-primary">+{qty_stock_other.toLocaleString()} (solo stock)</div>
+                </>
+              )}
               <div><span className="font-medium">Stock hasta fecha:</span></div>
               <div className="text-muted-foreground">{qty_stock_until_date.toLocaleString()}</div>
               <div><span className="font-medium">Ventas:</span></div>

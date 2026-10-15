@@ -25,6 +25,8 @@ interface ComboboxSingleProps {
   placeholder?: string;
   searchPlaceholder?: string;
   emptyText?: string;
+  /** Texto de la opción que limpia la selección. */
+  clearLabel?: string;
   disabled?: boolean;
   className?: string;
 }
@@ -197,7 +199,7 @@ export function Combobox(props: ComboboxProps) {
             }}
           >
             <Checkbox checked={!props.value} />
-            Todas
+            {props.clearLabel ?? "Todas"}
           </div>
         )}
 

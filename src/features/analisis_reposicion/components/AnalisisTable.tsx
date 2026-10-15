@@ -46,6 +46,8 @@ export interface StoreValue {
   transactions: number;
   total_buy: number;
   rotation: number;
+  /** Stock actual sumado de los almacenes extra de la tienda. No entra en la rotación. */
+  qty_stock_other?: number;
 }
 
 export interface AnalisisRow {
@@ -56,7 +58,8 @@ export interface AnalisisRow {
   cost: number;
   /** Disponibilidad en el mayorista, del último snapshot. Ausente si el backend es viejo. */
   supplier?: SupplierAvailability | null;
-  values: Record<string, StoreValue>;
+  /** Sin entrada para tiendas sin almacén principal (p. ej. WEB). */
+  values: Record<string, StoreValue | undefined>;
 }
 
 export interface StoreHeader {
@@ -254,6 +257,7 @@ function buildStoreColumns(
           storeId={store.id}
           storeName={store.name}
           qty_stock={val.qty_stock}
+          qty_stock_other={val.qty_stock_other ?? 0}
           qty_stock_until_date={val.qty_stock_until_date}
           qty_sold={val.qty_sold}
           transactions={val.transactions}
