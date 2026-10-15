@@ -1,11 +1,10 @@
 // services/reportes.service.ts
 import { AnalisisFilters } from "@/schemas/api/analisis.schemas";
-import { ApiError } from "@/config/api";
+import { api } from "@/config/api";
 import { format } from "date-fns";
-import Cookies from "js-cookie";
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
+const XLSX_MIME =
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
 function mapFiltersToExportRequest(filters: AnalisisFilters) {
   return {
@@ -24,51 +23,31 @@ function mapFiltersToExportRequest(filters: AnalisisFilters) {
   };
 }
 
-export async function exportAllProductsDetailsXml(
+/**
+ * Descarga el detalle de productos como .xlsx. El backend arma el archivo
+ * completo antes de responder, así que no hay progreso parcial.
+ */
+export async function exportAllProductsDetailsXlsx(
   filters: AnalisisFilters,
 ): Promise<void> {
-  const requestBody = mapFiltersToExportRequest(filters);
-  const token = Cookies.get("auth_token");
-
-  const response = await fetch(
-    `${BASE_URL}sales/export-all-products-details-xml`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token && { Authorization: `Bearer ${token}` }),
-      },
-      body: JSON.stringify(requestBody),
-    },
+  const res = await api.postDownload(
+    "/sales/export-all-products-details-xlsx",
+    mapFiltersToExportRequest(filters),
   );
 
-  if (!response.ok) {
-    const text = await response.text();
-    let data: unknown;
-    try {
-      data = JSON.parse(text);
-    } catch {
-      data = { detail: text };
-    }
-    throw ApiError.fromResponse(response.status, data);
-  }
+  const blob = new Blob([res.data], { type: XLSX_MIME });
 
-  const reader = response.body!.getReader();
-  const chunks: Uint8Array[] = [];
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    chunks.push(value);
-  }
-
-  const blob = new Blob(chunks as unknown as BlobPart[], { type: "application/xml" });
-  const dateStr = format(filters.dates.from, "yyyy-MM-dd");
+  const contentDisposition: string | undefined = res.headers["content-disposition"];
+  const filename =
+    contentDisposition?.match(/filename="?([^";]+)"?/)?.[1] ??
+    `detalle_productos_${format(filters.dates.from, "yyyyMMdd")}_${format(filters.dates.to, "yyyyMMdd")}.xlsx`;
 
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `ventas-productos-${dateStr}.xml`;
+  link.download = filename;
+  document.body.appendChild(link);
   link.click();
+  link.remove();
   URL.revokeObjectURL(url);
 }

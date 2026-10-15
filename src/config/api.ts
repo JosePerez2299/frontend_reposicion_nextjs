@@ -189,7 +189,12 @@ apiInstance.interceptors.response.use(
     }
 
     if (error.response) {
-      throw ApiError.fromResponse(error.response.status, error.response.data);
+      // En descargas (responseType: "blob") el cuerpo del error también llega como Blob
+      const data =
+        error.response.data instanceof Blob
+          ? await parseBlobErrorData(error.response.data)
+          : error.response.data;
+      throw ApiError.fromResponse(error.response.status, data);
     }
     throw new ApiError(500, null, "Error de conexión. Verifica tu red.");
   },

@@ -10,7 +10,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardAction, CardContent }
 import { ListFilter, FilterX, FileSpreadsheet, BarChart3, TrendingUp, TriangleAlert, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { useExportAllProductsXmlMutation } from "@/features/reportes/queries/reportes.queries";
+import { useExportAllProductsXlsxMutation } from "@/features/reportes/queries/reportes.queries";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/errors";
 
@@ -70,7 +70,7 @@ function AppliedFiltersSummary() {
 
 export default function ReportesPage() {
   const { filters, filtersApplied, reset } = useAnalisisStore();
-  const exportMutation = useExportAllProductsXmlMutation();
+  const exportMutation = useExportAllProductsXlsxMutation();
 
   useEffect(() => {
     return () => {
@@ -102,7 +102,7 @@ export default function ReportesPage() {
                   Ventas por producto
                 </CardTitle>
                 <CardDescription>
-                  Detalle de ventas por producto en el rango seleccionado, compatible con Excel.
+                  Detalle de ventas por producto en el rango seleccionado, por tienda y almacén (.xlsx).
                 </CardDescription>
               </CardHeader>
               <CardAction>
@@ -112,6 +112,7 @@ export default function ReportesPage() {
                   className="h-7 text-xs mr-1"
                   disabled={exportMutation.isPending}
                   onClick={() => {
+                    if (exportMutation.isPending) return;
                     exportMutation.mutate(filters, {
                       onError: (error) => {
                         toast.error(getErrorMessage(error));
@@ -122,10 +123,13 @@ export default function ReportesPage() {
                   {exportMutation.isPending ? (
                     <>
                       <Loader2 className="w-3 h-3 animate-spin" />
-                      Descargando...
+                      Generando archivo…
                     </>
                   ) : (
-                    "Descargar"
+                    <>
+                      <FileSpreadsheet className="w-3 h-3" />
+                      Exportar a Excel
+                    </>
                   )}
                 </Button>
               </CardAction>
